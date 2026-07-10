@@ -3,17 +3,19 @@ package com.walzengroup.viennadepart.data
 /**
  * Turns the raw monitor response into the UI model.
  *
- * Phase 1 is hardcoded to one stop + line: Frauengasse, line 44. Its two
+ * Phase 1 is hardcoded to one stop + line: Stephansplatz, line U1. A central
+ * U-Bahn line runs most of the day (and around the clock on weekend nights), so
+ * it's a reliable demo - a daytime tram is often empty at night. Its two
  * platforms (one per direction) are:
- *   RBL 555  -> Ottakring (H)
- *   RBL 1370 -> Schottentor U (R)
+ *   RBL 4111 -> Leopoldau (H)
+ *   RBL 4118 -> Oberlaa (R)
  * Phase 2 replaces this with location + the bundled stop CSV.
  */
 class DeparturesRepository {
 
-    private val stopName = "Frauengasse"
-    private val line = "44"
-    private val rbls = listOf(555, 1370)
+    private val stopName = "Stephansplatz"
+    private val line = "U1"
+    private val rbls = listOf(4111, 4118)
 
     suspend fun loadHardcodedStop(): DeparturesUi {
         val response = WienerLinienApi.monitor(rbls)

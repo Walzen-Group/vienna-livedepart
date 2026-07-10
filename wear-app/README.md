@@ -1,8 +1,9 @@
 # Phase 1 — bare Wear OS app
 
 A minimal Compose for Wear OS app that fetches **one hardcoded stop + line**
-(Frauengasse, line 44) from the Wiener Linien real-time API and shows the next
-departures, live, themed by the line's mode color.
+(Stephansplatz, line U1) from the Wiener Linien real-time API and shows the next
+departures, live, themed by the line's mode color. A central U-Bahn line is used
+so there are departures at most hours; a daytime tram is often empty at night.
 
 This phase is about learning the toolchain — project structure, the emulator,
 then a real watch — so the scope is deliberately small: no location, no search,
@@ -16,13 +17,13 @@ The project compiles to a debug APK with no manual setup beyond the Android SDK.
 A round-screen list on a deep tram-red ground:
 
 ```
-        44 · Frauengasse
-   → Ottakring          H
+        U1 · Stephansplatz
+   → Leopoldau          H
+   [ 15 min ]
+   [ 30 min ]
+   → Oberlaa            R
    [ 11 min ]
-   [ 26 min ]
-   → Schottentor U      R
-   [ 4 min   ❄️ ]
-   [ 19 min  ♿ ]
+   [ 25 min ]
 ```
 
 Each departure shows the countdown in minutes and, when the feed reports them,
@@ -102,8 +103,8 @@ wear-app/
 
 ## Notes and known bits
 
-- **Hardcoded stop**: `DeparturesRepository` fixes Frauengasse line 44 (RBLs 555
-  and 1370). Phase 2 replaces this with GPS + the bundled stop CSV.
+- **Hardcoded stop**: `DeparturesRepository` fixes Stephansplatz line U1 (RBLs
+  4111 and 4118). Phase 2 replaces this with GPS + the bundled stop CSV.
 - **Material**: built on Wear Compose Material (the stable 1.4 line). The spec
   targets Material 3 (`androidx.wear.compose:compose-material3`); that's a later
   swap once the components we need are confirmed stable.
