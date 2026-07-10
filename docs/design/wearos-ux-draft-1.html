@@ -1,0 +1,449 @@
+<title>Vienna departures on Wear OS — concept draft</title>
+<style>
+  :root {
+    --wl-red: #e20613;
+    --page-bg: #f1eff0;
+    --surface: #ffffff;
+    --text: #1b1719;
+    --muted: #6d666a;
+    --hair: #e4e0e2;
+    --accent: var(--wl-red);
+    --ac: #2f9bd8;
+    --scr: #000000;
+    --scr-row: #141418;
+    --scr-row2: #1e1e25;
+    --scr-text: #f4f4f5;
+    --scr-muted: #8b8b92;
+    --u2: #a762a3;
+    --u4: #009540;
+    --bus: #1c3f94;
+    --sbahn: #159dd9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --page-bg: #121013; --surface: #1d1a1e; --text: #efeaec; --muted: #988f96; --hair: #2b262c; }
+  }
+  :root[data-theme="light"] { --page-bg: #f1eff0; --surface: #ffffff; --text: #1b1719; --muted: #6d666a; --hair: #e4e0e2; }
+  :root[data-theme="dark"]  { --page-bg: #121013; --surface: #1d1a1e; --text: #efeaec; --muted: #988f96; --hair: #2b262c; }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page-bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: clamp(1.4rem, 4vw, 3.5rem) 1.25rem 5rem; }
+
+  header.top { margin-bottom: 3rem; }
+  .eyebrow { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin: 0 0 .8rem; }
+  h1 { font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.05; margin: 0 0 .7rem; letter-spacing: -.02em; text-wrap: balance; font-weight: 800; }
+  .lede { font-size: clamp(1rem, 2.2vw, 1.18rem); color: var(--muted); max-width: 62ch; margin: 0; }
+  .meta { margin-top: 1.4rem; display: flex; flex-wrap: wrap; gap: .5rem; }
+  .tag { font-size: .74rem; font-weight: 600; padding: .3rem .65rem; border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+  .tag.n { background: var(--surface); color: var(--muted); border-color: var(--hair); }
+
+  section { margin-top: 3.4rem; }
+  h2 { font-size: 1.3rem; letter-spacing: -.01em; margin: 0 0 .35rem; font-weight: 750; display: flex; align-items: baseline; gap: .6rem; }
+  h2 .num { font-size: .72rem; font-weight: 700; color: var(--accent); letter-spacing: .1em; font-variant-numeric: tabular-nums; }
+  .sub { color: var(--muted); margin: 0 0 1.6rem; max-width: 68ch; }
+  .hint { font-size: .78rem; color: var(--muted); margin: 1rem 0 0; }
+  .eyebrow-row { display: flex; align-items: baseline; gap: .6rem; margin: 2rem 0 1rem; }
+  .eyebrow-row b { font-size: .95rem; font-weight: 700; }
+  .eyebrow-row span { font-size: .8rem; color: var(--muted); }
+
+  .rail { display: flex; gap: 1.6rem; overflow-x: auto; padding: .3rem .1rem 1.4rem; scroll-snap-type: x proximity; }
+  .rail::-webkit-scrollbar { height: 8px; }
+  .rail::-webkit-scrollbar-thumb { background: var(--hair); border-radius: 999px; }
+  .step { flex: 0 0 auto; width: 232px; scroll-snap-align: start; }
+  .steplabel { display: flex; align-items: baseline; gap: .5rem; margin: 0 0 .7rem; }
+  .steplabel b { font-size: .88rem; font-weight: 700; }
+  .stepnum { font-size: .7rem; font-weight: 800; color: #fff; background: var(--accent);
+    width: 1.35rem; height: 1.35rem; border-radius: 999px; display: grid; place-items: center; font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+
+  .watch { width: 232px; height: 232px; border-radius: 50%;
+    background: linear-gradient(160deg, #3a3a3e, #131315 60%); padding: 11px;
+    box-shadow: 0 14px 30px -12px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.05); }
+  .screen { width: 100%; height: 100%; border-radius: 50%; background: var(--scr); color: var(--scr-text);
+    overflow: hidden; position: relative; display: flex; flex-direction: column; padding: 18px 24px; font-size: 13px; }
+  .screen.tint-tram { background: radial-gradient(118% 88% at 50% -6%, #47030a, #15080a 42%, #000 74%); }
+
+  .scr-time { text-align: center; font-size: 11px; color: var(--ac); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+  .scr-title { text-align: center; font-weight: 750; font-size: 14px; margin-top: 2px; letter-spacing: -.01em; }
+  .scr-title small { display: block; font-weight: 500; color: var(--scr-muted); font-size: 10.5px; letter-spacing: .02em; }
+  .scr-body { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; margin-top: 8px; }
+  .scr-foot { text-align: center; font-size: 9.5px; color: var(--scr-muted); margin-top: 5px; letter-spacing: .02em; }
+  .scr-foot b { color: var(--scr-text); font-weight: 650; }
+  .homenav { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 9px; color: var(--scr-muted); font-weight: 600; padding: 0 2px; }
+  .homenav .mid { display: flex; gap: 4px; flex: 0 0 auto; }
+  .homenav .mid i { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.28); }
+  .homenav .mid i.on { background: #fff; }
+
+  .row { background: var(--scr-row); border-radius: 12px; padding: 8px 11px; display: flex; align-items: center; gap: 9px; }
+  .row .name { flex: 1; min-width: 0; font-weight: 600; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .dist { font-size: 10.5px; color: var(--scr-muted); font-variant-numeric: tabular-nums; }
+  .row .chev { color: var(--scr-muted); font-size: 13px; }
+  .row.add { justify-content: center; color: var(--scr-muted); font-weight: 600; font-size: 12px; background: transparent; border: 1px dashed rgba(255,255,255,.16); }
+
+  /* line picker: both termini stacked, badge spanning both rows */
+  .linerow { background: var(--scr-row); border-radius: 13px; padding: 6px 10px; display: flex; align-items: center; gap: 10px; }
+  .linerow .lbadge { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 9px; background: var(--wl-red);
+    color: #fff; font-weight: 800; font-size: 13.5px; display: grid; place-items: center; }
+  .linerow .lbadge.u2 { background: var(--u2); } .linerow .lbadge.u4 { background: var(--u4); }
+  .linerow .lbadge.bus { background: var(--bus); } .linerow .lbadge.s { background: var(--sbahn); }
+  .linerow .names { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+  .linerow .names .t1, .linerow .names .t2 { font-weight: 600; font-size: 11.5px; color: var(--scr-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .linerow .chev { color: var(--scr-muted); font-size: 13px; flex: 0 0 auto; }
+
+  .badge { font-weight: 800; font-size: 11.5px; color: #fff; border-radius: 6px; min-width: 24px; height: 22px;
+    padding: 0 5px; display: grid; place-items: center; background: var(--wl-red); letter-spacing: .01em; flex: 0 0 auto; }
+  .badge.u2 { background: var(--u2); } .badge.u4 { background: var(--u4); }
+  .badge.bus { background: var(--bus); } .badge.s { background: var(--sbahn); }
+
+  .locbtn { width: 96px; height: 96px; border-radius: 50%;
+    background: #1a1a20; border: 1px solid rgba(255,255,255,.1);
+    display: grid; place-items: center; flex: 0 0 auto; }
+  .locbtn svg { width: 30px; height: 30px; fill: var(--wl-red); }
+  .loclabel { font-size: 12px; font-weight: 650; color: var(--scr-text); }
+
+  .locating { margin: auto; display: grid; place-items: center; gap: 12px; text-align: center; }
+  .ring { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; position: relative;
+    background: radial-gradient(circle, rgba(226,6,19,.18), transparent 62%); }
+  .ring::before, .ring::after { content: ""; position: absolute; border-radius: 50%; border: 1.5px solid rgba(226,6,19,.5); inset: 0; }
+  .ring::after { inset: 20px; border-color: rgba(226,6,19,.8); }
+  @media (prefers-reduced-motion: no-preference) { .ring::before { animation: pulse 2s ease-out infinite; } }
+  @keyframes pulse { 0% { transform: scale(.7); opacity: 1; } 100% { transform: scale(1.15); opacity: 0; } }
+  .ring .glyph { font-size: 26px; color: var(--wl-red); z-index: 1; }
+  .locating .cap { font-size: 12px; color: var(--scr-muted); } .locating .cap b { color: var(--scr-text); }
+
+  /* direction tabs — swipe flips between the two */
+  .dirtabs { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 3px 0 1px; font-size: 10.5px; }
+  .dirtabs .tab { color: var(--scr-muted); font-weight: 600; max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dirtabs .tab.on { color: var(--scr-text); font-weight: 750; }
+  .dirtabs .sep { color: var(--scr-muted); opacity: .45; }
+  .dirtabs .nav { color: var(--scr-muted); font-size: 13px; line-height: 1; }
+
+  /* platform header: destination + compass + RBL + H/R */
+  .dirhead { display: flex; align-items: center; gap: 6px; font-size: 10.5px; margin: 4px 3px 0; }
+  .dirhead .arrow { color: var(--scr-text); font-weight: 700; }
+  .dirhead .dest { color: var(--scr-text); font-weight: 650; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dirhead .compass { color: var(--scr-muted); font-weight: 750; font-size: 10px; letter-spacing: .04em; margin-left: auto; }
+  .dirhead .rbl { color: var(--scr-muted); opacity: .66; font-size: 9.5px; font-variant-numeric: tabular-nums; }
+  .dirhead .hr { color: var(--scr-muted); font-weight: 750; font-size: 10.5px; }
+
+  .dep { display: flex; align-items: center; gap: 8px; background: var(--scr-row2); border-radius: 14px; padding: 4px 13px; }
+  .dep .mins { font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; min-width: 44px; }
+  .dep .mins small { font-weight: 600; font-size: 10px; color: var(--scr-muted); }
+  .dep .glyphs { margin-left: auto; display: flex; gap: 7px; font-size: 12px; align-items: center; }
+  .snow { color: var(--ac); } .acc { color: #cfd3d6; } .star { color: var(--wl-red); }
+
+  .scr-body.stacked { gap: 2px; justify-content: flex-start; margin-top: 4px; }
+
+  .rotary { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); width: 3px; height: 62px; border-radius: 3px; background: rgba(255,255,255,.13); }
+  .rotary i { position: absolute; left: 0; width: 100%; height: 22px; border-radius: 3px; background: rgba(255,255,255,.55); top: 3px; }
+
+  .hive { display: flex; gap: 1.6rem; flex-wrap: wrap; align-items: flex-start; }
+  .hivecol { flex: 0 0 auto; width: 232px; }
+  .hivecol .cap { text-align: center; margin-top: .7rem; font-size: .82rem; color: var(--muted); }
+  .hivecol .cap b { color: var(--text); }
+  .comb { position: absolute; inset: 0; }
+  .cell { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; border-radius: 50%;
+    --cell: var(--wl-red);
+    transform: translate(-50%,-50%) translate(var(--x), var(--y));
+    background: #1c1c22;
+    border: 1px solid rgba(255,255,255,.08);
+    display: grid; place-items: center;
+    box-shadow: 0 3px 8px -4px rgba(0,0,0,.5); }
+  .cell.u2 { --cell: var(--u2); } .cell.u4 { --cell: var(--u4); }
+  .cell.bus { --cell: var(--bus); } .cell.s { --cell: var(--sbahn); }
+  .cell b { color: color-mix(in srgb, var(--cell) 82%, #ffffff); font-weight: 800; font-size: 16px; letter-spacing: .01em; }
+  .cell.app { background: #202028; border-color: rgba(255,255,255,.14); }
+  .cell.app svg { width: 25px; height: 25px; fill: #fff; }
+
+  .card { background: var(--surface); border: 1px solid var(--hair); border-radius: 14px; padding: 1.1rem 1.2rem; }
+  .card h3 { margin: 0 0 .7rem; font-size: .95rem; font-weight: 700; }
+  .leg { display: flex; align-items: center; gap: .7rem; padding: .35rem 0; font-size: .88rem; }
+  .leg .g { width: 1.9rem; text-align: center; font-size: 1.05rem; flex: 0 0 auto; }
+  .leg .g.snow { color: var(--ac); } .leg .g.star { color: var(--wl-red); } .leg .g.mono { font-size: .78rem; font-weight: 700; color: var(--muted); }
+  .leg span { color: var(--muted); } .leg span b { color: var(--text); font-weight: 650; }
+  code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .84em;
+    background: color-mix(in srgb, var(--muted) 14%, transparent); padding: .1em .4em; border-radius: 5px; }
+
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(116px,1fr)); gap: .6rem; margin-bottom: 1.1rem; }
+  .sw { border-radius: 11px; overflow: hidden; border: 1px solid var(--hair); }
+  .sw .chip { height: 44px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: .95rem; letter-spacing: .02em; }
+  .sw .m { padding: .4rem .6rem .5rem; background: var(--surface); }
+  .sw .m b { display: block; font-size: .8rem; } .sw .m code { font-size: .7rem; }
+  .sw .m .warn { display: block; color: var(--accent); font-size: .66rem; font-weight: 650; margin-top: .15rem; }
+
+  .phase { display: flex; gap: .8rem; align-items: flex-start; padding: .7rem 0; border-top: 1px solid var(--hair); }
+  .phase:first-child { border-top: none; }
+  .phase .p { font-size: .72rem; font-weight: 800; background: var(--text); color: var(--page-bg); padding: .2rem .5rem; border-radius: 6px; flex: 0 0 auto; margin-top: .1rem; }
+  .phase .t b { font-weight: 700; } .phase .t span { color: var(--muted); }
+
+  .q { border-left: 3px solid var(--accent); padding: .3rem 0 .3rem 1rem; margin: .7rem 0; }
+  .q b { font-weight: 700; } .q span { color: var(--muted); }
+
+  footer { margin-top: 3.5rem; padding-top: 1.4rem; border-top: 1px solid var(--hair); color: var(--muted); font-size: .84rem; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Wear OS · concept draft · v5</p>
+    <h1>Live Vienna departures, on the wrist</h1>
+    <p class="lede">A watch app for the real-time Wiener Linien data Google Maps skips. Open the app, hit your location, find the nearest stop, pick your line, read the countdown. Swipe flips direction; the crown walks to the next stop. Pin the lines you ride to a honeycomb tile.</p>
+    <div class="meta">
+      <span class="tag">Wiener Linien OGD · no API key</span>
+      <span class="tag n">Kotlin · Compose for Wear OS</span>
+      <span class="tag n">app finds &amp; manages · tile is the saved set</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">01</span> The app</h2>
+    <p class="sub">The app opens on <b>Nearby</b>. Swipe left or right to reach favorites and search — leaving up/down free to scroll those lists. Tap into any stop, pick a line, and read the times. On the times screen: swipe flips direction (H ↔ R), the crown steps to farther stops. Scroll the rail below to walk through it.</p>
+    <p class="hint">← drag / scroll the watches sideways →</p>
+
+    <div class="rail">
+      <div class="step">
+        <div class="steplabel"><span class="stepnum">1</span><b>Open the app</b></div>
+        <div class="watch"><div class="screen">
+          <div class="scr-time">10:42</div>
+          <div class="scr-body" style="align-items:center; gap:4px;">
+            <div class="locbtn">
+              <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path></svg>
+            </div>
+            <div class="loclabel">Nearby</div>
+          </div>
+          <div class="homenav"><span>‹ Favorites</span><span class="mid"><i></i><i class="on"></i><i></i></span><span>Search ›</span></div>
+        </div></div>
+      </div>
+
+      <div class="step">
+        <div class="steplabel"><span class="stepnum">2</span><b>Nearby stops</b></div>
+        <div class="watch"><div class="screen">
+          <div class="scr-title">Near you</div>
+          <div class="scr-body">
+            <div class="row"><span class="name">Joh.-Nep.-Berger-Pl.</span><span class="dist">40 m</span><span class="chev">›</span></div>
+            <div class="row"><span class="name">Frauengasse</span><span class="dist">190 m</span><span class="chev">›</span></div>
+            <div class="row"><span class="name">Elterleinplatz</span><span class="dist">320 m</span><span class="chev">›</span></div>
+          </div>
+          <div class="scr-foot">sorted by distance</div>
+        </div></div>
+      </div>
+
+      <div class="step">
+        <div class="steplabel"><span class="stepnum">3</span><b>Pick a line</b></div>
+        <div class="watch"><div class="screen">
+          <div class="scr-title">Joh.-Nep.-Berger-Pl.<small>which line?</small></div>
+          <div class="scr-body" style="gap:7px;">
+            <div class="linerow"><span class="lbadge">2</span><div class="names"><span class="t1">Dornbach</span><span class="t2">Friedr.-Engels-Platz</span></div><span class="chev">›</span></div>
+            <div class="linerow"><span class="lbadge">9</span><div class="names"><span class="t1">Gersthof</span><span class="t2">Westbahnhof S U</span></div><span class="chev">›</span></div>
+            <div class="linerow"><span class="lbadge">44</span><div class="names"><span class="t1">Ottakring</span><span class="t2">Schottentor U</span></div><span class="chev">›</span></div>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="step">
+        <div class="steplabel"><span class="stepnum">4</span><b>Live times</b></div>
+        <div class="watch"><div class="screen tint-tram"><div class="rotary"><i></i></div>
+          <div class="scr-title" style="display:flex;align-items:center;justify-content:center;gap:6px;"><span class="badge">9</span> JNBP <span class="star">★</span></div>
+          <div class="dirtabs"><span class="nav">‹</span><span class="tab on">Westbahnhof</span><span class="sep">·</span><span class="tab">Gersthof</span><span class="nav">›</span></div>
+          <div class="scr-body stacked" style="justify-content:center;">
+            <div class="dep"><span class="mins">4<small> min</small></span><span class="glyphs"><span class="snow">❄</span></span></div>
+            <div class="dep"><span class="mins">18<small> min</small></span></div>
+          </div>
+          <div class="scr-foot"><b>JNBP</b> · 40 m</div>
+        </div></div>
+      </div>
+
+      <div class="step">
+        <div class="steplabel"><span class="stepnum">5</span><b>Swipe → Gersthof (R)</b></div>
+        <div class="watch"><div class="screen tint-tram"><div class="rotary"><i></i></div>
+          <div class="scr-title" style="display:flex;align-items:center;justify-content:center;gap:6px;"><span class="badge">9</span> JNBP <span class="star">★</span></div>
+          <div class="dirtabs"><span class="nav">‹</span><span class="tab">Westbahnhof</span><span class="sep">·</span><span class="tab on">Gersthof</span><span class="nav">›</span></div>
+          <div class="scr-body stacked">
+            <div class="dirhead"><span class="arrow">→</span><span class="dest">Gersthof</span><span class="compass">SW</span><span class="rbl">547</span><span class="hr">R</span></div>
+            <div class="dep"><span class="mins">2<small> min</small></span><span class="glyphs"><span class="acc">♿</span></span></div>
+            <div class="dep"><span class="mins">17<small> min</small></span><span class="glyphs"><span class="snow">❄</span></span></div>
+            <div class="dirhead"><span class="arrow">→</span><span class="dest">Gersthof</span><span class="compass">NE</span><span class="rbl">548</span><span class="hr">R</span></div>
+            <div class="dep"><span class="mins">6<small> min</small></span></div>
+            <div class="dep"><span class="mins">21<small> min</small></span><span class="glyphs"><span class="snow">❄</span></span></div>
+          </div>
+          <div class="scr-foot"><b>JNBP</b> · 40 m · 2 platforms</div>
+        </div></div>
+      </div>
+
+      <div class="step">
+        <div class="steplabel"><span class="stepnum">6</span><b>Crown → next stop</b></div>
+        <div class="watch"><div class="screen tint-tram"><div class="rotary"><i style="top:26px;"></i></div>
+          <div class="scr-title" style="display:flex;align-items:center;justify-content:center;gap:6px;"><span class="badge">9</span> Elterleinplatz</div>
+          <div class="dirtabs"><span class="nav">‹</span><span class="tab">Westbahnhof</span><span class="sep">·</span><span class="tab on">Gersthof</span><span class="nav">›</span></div>
+          <div class="scr-body stacked" style="justify-content:center;">
+            <div class="dep"><span class="mins">9<small> min</small></span></div>
+            <div class="dep"><span class="mins">24<small> min</small></span><span class="glyphs"><span class="snow">❄</span></span></div>
+          </div>
+          <div class="scr-foot"><b>Elterleinplatz</b> · 320 m</div>
+        </div></div>
+      </div>
+
+      <div class="step">
+        <div class="steplabel"><span class="stepnum">7</span><b>A short-turn, at the bottom</b></div>
+        <div class="watch"><div class="screen tint-tram"><div class="rotary"><i></i></div>
+          <div class="scr-title" style="display:flex;align-items:center;justify-content:center;gap:6px;"><span class="badge">2</span> JNBP <span class="star">★</span></div>
+          <div class="dirtabs"><span class="nav">‹</span><span class="tab">Friedr.-Engels</span><span class="sep">·</span><span class="tab on">Dornbach</span><span class="nav">›</span></div>
+          <div class="scr-body stacked">
+            <div class="dirhead"><span class="arrow">→</span><span class="dest">Dornbach</span><span class="compass">NE</span><span class="rbl">548</span><span class="hr">R</span></div>
+            <div class="dep"><span class="mins">7<small> min</small></span></div>
+            <div class="dep"><span class="mins">14<small> min</small></span></div>
+            <div class="dirhead"><span class="arrow">→</span><span class="dest">Wattgasse Bbf.</span><span class="compass">SW</span><span class="rbl">547</span><span class="hr">R</span></div>
+            <div class="dep"><span class="mins">61<small> min</small></span></div>
+          </div>
+          <div class="scr-foot"><b>JNBP</b> · 40 m · short-turn</div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span> The departures screen, read closely</h2>
+    <p class="sub">One direction at a time, at the nearest stop. Swipe flips between Westbahnhof (H) and Gersthof (R) — the tabs up top track it. When a direction runs from two poles, like line 9's two Gersthof platforms here, they stack, each with its own header and next two. The crown steps to farther stops. Every glyph comes straight from the feed.</p>
+    <div style="display:flex; gap:2rem; flex-wrap:wrap; align-items:center;">
+      <div class="watch" style="flex:0 0 auto;"><div class="screen tint-tram"><div class="rotary"><i></i></div>
+        <div class="scr-title" style="display:flex;align-items:center;justify-content:center;gap:6px;"><span class="badge">9</span> JNBP <span class="star">★</span></div>
+        <div class="dirtabs"><span class="nav">‹</span><span class="tab">Westbahnhof</span><span class="sep">·</span><span class="tab on">Gersthof</span><span class="nav">›</span></div>
+        <div class="scr-body stacked">
+          <div class="dirhead"><span class="arrow">→</span><span class="dest">Gersthof</span><span class="compass">SW</span><span class="rbl">547</span><span class="hr">R</span></div>
+          <div class="dep"><span class="mins">2<small> min</small></span><span class="glyphs"><span class="acc">♿</span></span></div>
+          <div class="dep"><span class="mins">17<small> min</small></span><span class="glyphs"><span class="snow">❄</span></span></div>
+          <div class="dirhead"><span class="arrow">→</span><span class="dest">Gersthof</span><span class="compass">NE</span><span class="rbl">548</span><span class="hr">R</span></div>
+          <div class="dep"><span class="mins">6<small> min</small></span></div>
+          <div class="dep"><span class="mins">21<small> min</small></span><span class="glyphs"><span class="snow">❄</span></span></div>
+        </div>
+        <div class="scr-foot"><b>JNBP</b> · 40 m · 2 platforms</div>
+      </div></div>
+
+      <div class="card" style="flex:1; min-width:250px;">
+        <h3>What each mark means</h3>
+        <div class="leg"><span class="g mono">‹ ›</span><span><b>Swipe</b> — flip direction, H ↔ R; both destinations named in the tabs</span></div>
+        <div class="leg"><span class="g mono">→</span><span><b>Platform header</b> — destination, compass, RBL, H/R; shown only when a direction has 2+ platforms</span></div>
+        <div class="leg"><span class="g mono">SW</span><span><b>Two poles</b> — a direction with two platforms stacks; each keeps its own next two</span></div>
+        <div class="leg"><span class="g">4′</span><span><b>Countdown</b> — <code>departureTime.countdown</code>, whole minutes, live</span></div>
+        <div class="leg"><span class="g snow">❄</span><span><b>Air conditioned</b> — <code>vehicle.cooling</code> is true</span></div>
+        <div class="leg"><span class="g acc">♿</span><span><b>Step-free</b> — <code>vehicle.barrierFree</code>; ramp via <code>foldingRamp</code></span></div>
+        <div class="leg"><span class="g">↻</span><span><b>Crown</b> — step to the next stop along the line, farther out</span></div>
+        <div class="leg"><span class="g star">★</span><span><b>Pin</b> — saves this <em>line</em> to the favorites tile</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span> Favorites: pinned in the app, glanced from the tile</h2>
+    <p class="sub">Two surfaces, one job split cleanly. In the <b>app</b> you pin and reorder the lines you ride. The <b>tile</b> is that saved set — up to six line buttons around a centre app button — one swipe from the watch face. Tap a line to jump to its nearest stop; tap the centre to open the full app and browse or search.</p>
+
+    <div class="eyebrow-row"><b>In the app — manage</b><span>pin, unpin, reorder</span></div>
+    <div class="hive">
+      <div class="hivecol">
+        <div class="watch"><div class="screen">
+          <div class="scr-title">Favorites</div>
+          <div class="scr-body" style="gap:6px;">
+            <div class="row"><span class="badge">44</span><span class="name">Ottakring · Schotten.</span><span class="star">★</span></div>
+            <div class="row"><span class="badge">9</span><span class="name">Gersthof · Westbf</span><span class="star">★</span></div>
+            <div class="row"><span class="badge u2">U2</span><span class="name">Seestadt · Karlspl.</span><span class="star">★</span></div>
+            <div class="row add">＋ Add a line</div>
+          </div>
+        </div></div>
+        <p class="cap">the star pins a line (up to six); tap again to drop it</p>
+      </div>
+
+      <div class="hivecol">
+        <div class="watch"><div class="screen">
+          <div class="scr-body">
+            <div class="locating">
+              <div class="ring"><span class="glyph">◎</span></div>
+              <div class="cap"><b>Line 9</b><br>nearest stop to you…</div>
+            </div>
+          </div>
+        </div></div>
+        <p class="cap">tap a tile button → app locates you</p>
+      </div>
+    </div>
+
+    <div class="eyebrow-row"><b>On the wrist — the tile</b><span>up to six lines around a centre app button</span></div>
+    <div class="hive">
+      <div class="hivecol">
+        <div class="watch"><div class="screen"><div class="comb">
+          <div class="cell app" style="--x:0px; --y:0px;"><svg viewBox="0 0 24 24"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>
+          <div class="cell" style="--x:0px; --y:-68px;"><b>44</b></div>
+        </div></div></div>
+        <p class="cap"><b>1 line</b> + app</p>
+      </div>
+      <div class="hivecol">
+        <div class="watch"><div class="screen"><div class="comb">
+          <div class="cell app" style="--x:0px; --y:0px;"><svg viewBox="0 0 24 24"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>
+          <div class="cell" style="--x:0px; --y:-68px;"><b>44</b></div>
+          <div class="cell u2" style="--x:59px; --y:34px;"><b>U2</b></div>
+          <div class="cell" style="--x:-59px; --y:34px;"><b>9</b></div>
+        </div></div></div>
+        <p class="cap"><b>3 lines</b> + app</p>
+      </div>
+      <div class="hivecol">
+        <div class="watch"><div class="screen"><div class="comb">
+          <div class="cell app" style="--x:0px; --y:0px;"><svg viewBox="0 0 24 24"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>
+          <div class="cell" style="--x:0px; --y:-68px;"><b>44</b></div>
+          <div class="cell" style="--x:59px; --y:-34px;"><b>9</b></div>
+          <div class="cell u2" style="--x:59px; --y:34px;"><b>U2</b></div>
+          <div class="cell" style="--x:0px; --y:68px;"><b>2</b></div>
+          <div class="cell bus" style="--x:-59px; --y:34px;"><b>13A</b></div>
+          <div class="cell u4" style="--x:-59px; --y:-34px;"><b>U4</b></div>
+        </div></div></div>
+        <p class="cap"><b>6 lines</b> — full</p>
+      </div>
+    </div>
+    <p class="hint">Wear OS tiles are static and can't scroll, so it's a hard six lines. The centre is always the app button — a white train icon; tap it to open the app and browse or search anything. Tapping a line jumps to its nearest stop. The tile stores only the line list, no live data, so it never goes stale or drains battery.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span> Color is the mode</h2>
+    <p class="sub">Your idea: the color carries the mode, so a glance says "tram" or "U-Bahn" before you read a word — the tile buttons, and the deep red ground on the line-9 screens. One catch worth knowing: the Wiener Linien feed publishes <b>no colors at all</b>. So this is an in-app map, keyed off the line name for U-Bahn and <code>vehicle.type</code> for the rest.</p>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#E20613">U1</div><div class="m"><b>U1</b><code>#E20613</code></div></div>
+      <div class="sw"><div class="chip" style="background:#A762A3">U2</div><div class="m"><b>U2</b><code>#A762A3</code></div></div>
+      <div class="sw"><div class="chip" style="background:#F07D00">U3</div><div class="m"><b>U3</b><code>#F07D00</code></div></div>
+      <div class="sw"><div class="chip" style="background:#009540">U4</div><div class="m"><b>U4</b><code>#009540</code></div></div>
+      <div class="sw"><div class="chip" style="background:#008E95">U5</div><div class="m"><b>U5</b><code>#008E95</code></div></div>
+      <div class="sw"><div class="chip" style="background:#9D6930">U6</div><div class="m"><b>U6</b><code>#9D6930</code></div></div>
+      <div class="sw"><div class="chip" style="background:#E20613">Tram</div><div class="m"><b>Tram</b><code>#E20613</code></div></div>
+      <div class="sw"><div class="chip" style="background:#159DD9">S</div><div class="m"><b>S-Bahn</b><code>#159DD9</code></div></div>
+      <div class="sw"><div class="chip" style="background:#1C3F94">Bus</div><div class="m"><b>Bus</b><code>#1C3F94</code><span class="warn">≈ check brand guide</span></div></div>
+      <div class="sw"><div class="chip" style="background:#0069B4">WLB</div><div class="m"><b>Badner Bahn</b><code>#0069B4</code><span class="warn">≈ check brand guide</span></div></div>
+    </div>
+    <p class="hint">U-Bahn hexes are authoritative (Wikidata P465). Tram red and S-Bahn blue are solid. The bus and Badner Bahn blues are conventional — flagged, worth an eyeball against the official Wiener Linien brand guide before shipping.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span> How it maps to the build</h2>
+    <p class="sub">The app is the product; the tile is a Phase-3 shortcut on top of it. This model leans hard on location, so Phase 2 is the heart of the app. Phase 0 (the laptop script) already proved every field these screens show.</p>
+    <div class="card">
+      <div class="phase"><span class="p">Phase 1</span><span class="t"><b>One hardcoded line + stop, live.</b> <span>The departures screen (02), no location yet. Learns the toolchain.</span></span></div>
+      <div class="phase"><span class="p">Phase 2</span><span class="t"><b>The app proper.</b> <span>Home, GPS, the bundled stop CSV, nearby stops, pick a line, swipe-direction departures with stacked poles, crown-scroll to farther stops. GPS also picks the right pole when a stop has two.</span></span></div>
+      <div class="phase"><span class="p">Phase 3</span><span class="t"><b>Favorites + the tile.</b> <span>Pin lines in the app, persist the list, render the honeycomb tile, deep-link each button back into the located departures view.</span></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span> Open questions for you</h2>
+    <div class="card" style="margin-bottom:1.3rem;">
+      <h3 style="margin-bottom:.5rem;">Decided</h3>
+      <div class="leg"><span class="g mono">↔</span><span><b>Home</b> — Nearby in the middle; swipe left/right to favorites and search, leaving up/down to scroll the lists</span></div>
+      <div class="leg"><span class="g">⌨</span><span><b>Search a stop</b> — the watch's built-in text + voice input; no custom keyboard</span></div>
+      <div class="leg"><span class="g mono">‹ ›</span><span><b>Swipe</b> — flip direction, H ↔ R (one direction on screen at a time)</span></div>
+      <div class="leg"><span class="g">↻</span><span><b>Crown</b> — step to the next stop along the line, farther out</span></div>
+      <div class="leg"><span class="g mono">→</span><span><b>Platforms</b> — same-direction poles stack with a header each; a single platform skips it</span></div>
+      <div class="leg"><span class="g">🚆</span><span><b>Tile capacity</b> — six pinned lines around a centre app button; tiles can't scroll, so six is the hard cap</span></div>
+    </div>
+    <div class="q"><b>Colored background — too much?</b> <span>The line-9 screens sit on a deep tram-red ground. Keep the full tint, or pull it back to just the badge so the times stay on plain black?</span></div>
+    <div class="q"><b>A/C snowflake.</b> <span>Show it year-round, or only in warm months when it actually changes your choice?</span></div>
+  </section>
+
+  <footer>
+    Concept draft v5, not final UI. Round-screen mockups are illustrative — real Compose for Wear OS layout, sizing, and rotary input come at build time. RBL numbers on the JNBP screens are real (556 / 547 / 548); Elterleinplatz RBLs are placeholder. Data shape verified live against the Wiener Linien OGD monitor endpoint; transport colors via Wikidata P465 (U-Bahn).
+  </footer>
+</div>
