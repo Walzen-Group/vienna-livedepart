@@ -1,0 +1,6 @@
+<resources>
+    <!-- A plain DeviceDefault theme; the real styling happens in Compose. -->
+    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>
