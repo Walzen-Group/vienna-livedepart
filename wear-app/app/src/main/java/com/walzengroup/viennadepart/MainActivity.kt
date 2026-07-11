@@ -11,6 +11,7 @@ import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.walzengroup.viennadepart.ui.DeparturesScreen
+import com.walzengroup.viennadepart.ui.HomeScreen
 import com.walzengroup.viennadepart.ui.NearbyScreen
 import com.walzengroup.viennadepart.ui.StopLinesScreen
 import com.walzengroup.viennadepart.ui.theme.ViennaTheme
@@ -23,7 +24,10 @@ class MainActivity : ComponentActivity() {
                 val nav = rememberSwipeDismissableNavController()
                 val app: AppViewModel = viewModel()
 
-                SwipeDismissableNavHost(navController = nav, startDestination = "nearby") {
+                SwipeDismissableNavHost(navController = nav, startDestination = "home") {
+                    composable("home") {
+                        HomeScreen(onNearby = { nav.navigate("nearby") })
+                    }
                     composable("nearby") {
                         NearbyScreen(onSelect = { stop ->
                             app.selectedStop = stop

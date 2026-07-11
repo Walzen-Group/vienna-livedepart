@@ -30,6 +30,7 @@ class LocationProvider(context: Context) {
 
     @SuppressLint("MissingPermission")
     suspend fun current(): Location? {
+        cached()?.let { return it }
         val fresh = withTimeoutOrNull(10_000) {
             val cts = CancellationTokenSource()
             suspendCancellableCoroutine { cont ->
@@ -39,7 +40,9 @@ class LocationProvider(context: Context) {
                 cont.invokeOnCancellation { cts.cancel() }
             }
         }
-        return fresh ?: lastKnown()
+        val result = fresh ?: lastKnown()
+        if (result != null) store(result)
+        return result
     }
 
     @SuppressLint("MissingPermission")
@@ -57,6 +60,21 @@ class LocationProvider(context: Context) {
             if (loc != null) return loc
         }
         return null
+    }
+
+    // A recent fix is reused so returning to the nearby list doesn't re-run GPS.
+    companion object {
+        private const val TTL_MS = 60_000L
+        @Volatile private var last: Location? = null
+        @Volatile private var lastAt = 0L
+
+        private fun cached(): Location? =
+            last?.takeIf { System.currentTimeMillis() - lastAt < TTL_MS }
+
+        private fun store(loc: Location) {
+            last = loc
+            lastAt = System.currentTimeMillis()
+        }
     }
 }
 

@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.nio.charset.Charset
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -19,7 +18,6 @@ import kotlin.math.hypot
  */
 object StopRepository {
 
-    private val cp1252: Charset = Charset.forName("windows-1252")
     private val cardinals = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
 
     private val mutex = Mutex()
@@ -61,7 +59,7 @@ object StopRepository {
         }
         val groups = LinkedHashMap<String, Group>()
 
-        context.assets.open("haltepunkte.csv").bufferedReader(cp1252).useLines { lines ->
+        context.assets.open("haltepunkte.csv").bufferedReader().useLines { lines ->
             lines.drop(1).forEach { line ->
                 val c = line.split(';')
                 if (c.size < 7) return@forEach

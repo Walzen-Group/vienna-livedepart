@@ -12,7 +12,7 @@ class DeparturesRepository {
 
     /** Distinct lines currently at the stop, each with its destinations. */
     suspend fun linesAtStop(stop: PhysicalStop): List<LineOption> {
-        val response = WienerLinienApi.monitor(stop.rbls)
+        val response = cachedMonitor(stop.rbls)
 
         class Acc {
             var type: String? = null
@@ -36,7 +36,7 @@ class DeparturesRepository {
 
     /** Next departures for one line at the stop, grouped by platform. */
     suspend fun departuresForLine(stop: PhysicalStop, line: String): DeparturesUi {
-        val response = WienerLinienApi.monitor(stop.rbls)
+        val response = cachedMonitor(stop.rbls)
         var lineType: String? = null
 
         val groups = response.data?.monitors.orEmpty().flatMap { monitor ->
@@ -78,4 +78,30 @@ class DeparturesRepository {
     // Sort trams/buses by number; U-Bahn and letter lines fall to the end.
     private fun numericKey(name: String): Int =
         name.filter { it.isDigit() }.toIntOrNull() ?: 9999
+
+    // One monitor call per stop, reused briefly across the line list, the
+    // departures screen, and back-navigation so those feel instant.
+    private suspend fun cachedMonitor(rbls: List<Int>): MonitorResponse {
+        val key = rbls.sorted().joinToString(",")
+        MonitorCache.get(key)?.let { return it }
+        return WienerLinienApi.monitor(rbls).also { MonitorCache.put(key, it) }
+    }
+}
+
+private object MonitorCache {
+    private const val TTL_MS = 20_000L
+    private class Entry(val at: Long, val response: MonitorResponse)
+    private val entries = HashMap<String, Entry>()
+
+    @Synchronized
+    fun get(key: String): MonitorResponse? {
+        val entry = entries[key] ?: return null
+        return if (System.currentTimeMillis() - entry.at < TTL_MS) entry.response
+        else { entries.remove(key); null }
+    }
+
+    @Synchronized
+    fun put(key: String, response: MonitorResponse) {
+        entries[key] = Entry(System.currentTimeMillis(), response)
+    }
 }
