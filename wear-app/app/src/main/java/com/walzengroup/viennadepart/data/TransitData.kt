@@ -20,10 +20,13 @@ object TransitData {
     private data class Spec(val name: String, val url: String, val headerPrefix: String)
 
     private const val BASE = "https://www.wienerlinien.at/ogd_realtime/doku/ogd/"
+    // line_routes.csv is derived from GTFS by tools/build_routes.py and regenerated
+    // weekly in CI; it's served from the repo's raw content.
+    private const val ROUTES_URL =
+        "https://raw.githubusercontent.com/Walzen-Group/vienna-livedepart/main/wear-app/app/src/main/assets/line_routes.csv"
     private val SPECS = listOf(
         Spec("haltepunkte.csv", BASE + "wienerlinien-ogd-haltepunkte.csv", "StopID;DIVA"),
-        Spec("linien.csv", BASE + "wienerlinien-ogd-linien.csv", "LineID;LineText"),
-        Spec("fahrwegverlaeufe.csv", BASE + "wienerlinien-ogd-fahrwegverlaeufe.csv", "LineID;PatternID"),
+        Spec("line_routes.csv", ROUTES_URL, "line;headsign"),
     )
 
     private const val PREF = "vienna_transit_data"

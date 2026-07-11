@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.wear.protolayout)
     implementation(libs.androidx.wear.protolayout.material)
     implementation(libs.androidx.concurrent.futures)
+    implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)

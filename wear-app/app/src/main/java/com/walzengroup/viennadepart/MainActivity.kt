@@ -15,6 +15,7 @@ import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.walzengroup.viennadepart.data.LastConnectionStore
+import com.walzengroup.viennadepart.data.TransitRefreshWorker
 import com.walzengroup.viennadepart.tile.EXTRA_FAVORITE_LINE
 import com.walzengroup.viennadepart.ui.DeparturesScreen
 import com.walzengroup.viennadepart.ui.FavoriteOpenScreen
@@ -29,6 +30,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        TransitRefreshWorker.schedule(this) // weekly background refresh of stop + route data
         pendingFavorite.value = intent?.getStringExtra(EXTRA_FAVORITE_LINE)
         setContent {
             ViennaTheme {

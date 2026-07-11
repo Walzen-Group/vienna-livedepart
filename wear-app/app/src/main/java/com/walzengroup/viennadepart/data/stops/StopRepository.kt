@@ -24,6 +24,7 @@ object StopRepository {
     private val mutex = Mutex()
     @Volatile private var cache: List<PhysicalStop>? = null
     @Volatile private var rblLookup: Map<Int, PhysicalStop>? = null
+    @Volatile private var divaLookup: Map<String, PhysicalStop>? = null
 
     suspend fun stops(context: Context): List<PhysicalStop> {
         cache?.let { return it }
@@ -45,10 +46,22 @@ object StopRepository {
         return index[rbl]
     }
 
+    /** The physical stop with the given DIVA, or null. */
+    suspend fun stopForDiva(context: Context, diva: String): PhysicalStop? {
+        val index = divaLookup ?: run {
+            val all = stops(context)
+            mutex.withLock {
+                divaLookup ?: all.associateBy { it.diva }.also { divaLookup = it }
+            }
+        }
+        return index[diva]
+    }
+
     /** Drop parsed data so the next read reloads from the (possibly refreshed) file. */
     fun invalidate() {
         cache = null
         rblLookup = null
+        divaLookup = null
     }
 
     suspend fun nearest(context: Context, lat: Double, lon: Double, limit: Int = 12): List<StopDistance> {

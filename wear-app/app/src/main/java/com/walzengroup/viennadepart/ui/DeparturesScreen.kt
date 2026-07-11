@@ -218,7 +218,7 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                                         val termini = ui.directions.map { it.label }
                                         LaunchedEffect(termini) {
                                             if (chain.isEmpty() && termini.isNotEmpty()) {
-                                                chain = RouteRepository.chainFor(context, line, termini)
+                                                chain = RouteRepository.chainFor(context, line, termini, stop.diva)
                                             }
                                         }
                                         DeparturesBody(ui, app)

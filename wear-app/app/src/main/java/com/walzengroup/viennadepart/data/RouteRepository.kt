@@ -11,23 +11,63 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Line routing from the bundled OGD reference (assets/linien.csv +
- * fahrwegverlaeufe.csv). Turns a line name into the ordered chain of physical
- * stops it serves, so the departures screen's crown can step to the next stop.
+ * Line routing from the bundled `assets/line_routes.csv` — a canonical
+ * line → ordered physical stops table derived offline from Wiener Linien GTFS
+ * (see `tools/build_routes.py`), keyed by the **headsign** that the live monitor
+ * `towards` label carries. This replaced the `fahrwegverlaeufe.csv` pattern
+ * heuristic, which mis-routed lines because the live destination is a headsign
+ * ("Gersthof"), not a terminus stop name ("Wallrißstraße").
  *
- * fahrwegverlaeufe.StopID is the platform RBL (verified against haltepunkte);
- * Direction 1/2 is Hin/Rück. We take one direction's longest pattern (the full
- * route, not a short-turn) and collapse consecutive platforms of the same
- * physical stop into a single stop.
+ * CSV: `line;headsign;seq;diva` (ordered by seq, one row per physical stop).
  */
 object RouteRepository {
 
-    private data class Seq(val pattern: String, val order: Int, val rbl: Int, val direction: String)
+    /** One direction/variant of a line: its headsign and the ordered stop DIVAs. */
+    private data class Route(val headsign: String, val divas: List<String>)
 
     private val mutex = Mutex()
-    @Volatile private var lineIdByName: Map<String, String>? = null
-    @Volatile private var seqByLineId: Map<String, List<Seq>>? = null
+    @Volatile private var byLine: Map<String, List<Route>>? = null
     private val chainCache = ConcurrentHashMap<String, List<PhysicalStop>>()
+
+    /**
+     * Ordered physical stops along [lineName] for the route matching one of the live
+     * [termini] (the monitor `towards` labels). Prefers a matching route that contains
+     * [currentDiva] (the opened stop), then the longest; falls back to the longest
+     * route that contains the stop, then the longest overall.
+     */
+    suspend fun chainFor(
+        context: Context,
+        lineName: String,
+        termini: List<String>,
+        currentDiva: String,
+    ): List<PhysicalStop> {
+        val cacheKey = "$lineName|$currentDiva|" + termini.sorted().joinToString(",")
+        chainCache[cacheKey]?.let { return it }
+        ensureLoaded(context.applicationContext)
+
+        val routes = byLine?.get(lineName).orEmpty()
+        if (routes.isEmpty()) {
+            chainCache[cacheKey] = emptyList()
+            return emptyList()
+        }
+
+        val chain = withContext(Dispatchers.Default) {
+            val termNorms = termini.map { normalize(it) }.filter { it.isNotBlank() }
+            fun matchesTerminus(r: Route): Boolean {
+                val h = normalize(r.headsign)
+                return termNorms.any { it.contains(h) || h.contains(it) }
+            }
+            val matching = routes.filter { matchesTerminus(it) }
+            val chosen = matching.filter { currentDiva in it.divas }.maxByOrNull { it.divas.size }
+                ?: matching.maxByOrNull { it.divas.size }
+                ?: routes.filter { currentDiva in it.divas }.maxByOrNull { it.divas.size }
+                ?: routes.maxByOrNull { it.divas.size }
+                ?: return@withContext emptyList<PhysicalStop>()
+            chosen.divas.mapNotNull { StopRepository.stopForDiva(context, it) }
+        }
+        chainCache[cacheKey] = chain
+        return chain
+    }
 
     /** The stop closest to (lat, lon) among all stops [lineName] serves; null if unknown. */
     suspend fun nearestStopOnLine(
@@ -37,13 +77,12 @@ object RouteRepository {
         lon: Double,
     ): PhysicalStop? {
         ensureLoaded(context.applicationContext)
-        val lineId = lineIdByName?.get(lineName) ?: return null
-        val rows = seqByLineId?.get(lineId).orEmpty()
-        if (rows.isEmpty()) return null
+        val routes = byLine?.get(lineName).orEmpty()
+        if (routes.isEmpty()) return null
+        val divas = routes.flatMapTo(HashSet()) { it.divas }
         return withContext(Dispatchers.Default) {
             val out = FloatArray(1)
-            rows.mapNotNull { StopRepository.stopForRbl(context, it.rbl) }
-                .distinctBy { it.diva }
+            divas.mapNotNull { StopRepository.stopForDiva(context, it) }
                 .minByOrNull { s ->
                     Location.distanceBetween(lat, lon, s.centerLat, s.centerLon, out)
                     out[0]
@@ -51,118 +90,47 @@ object RouteRepository {
         }
     }
 
-    /** Drop parsed data so the next read reloads from the (possibly refreshed) files. */
+    /** Drop parsed data so the next read reloads from the (possibly refreshed) file. */
     fun invalidate() {
-        lineIdByName = null
-        seqByLineId = null
+        byLine = null
         chainCache.clear()
     }
 
-    /**
-     * Ordered physical stops along [lineName], following the route that ends at one
-     * of [termini] (the line's live destinations). Matching the terminus avoids
-     * depot/short-working patterns that "longest pattern" would otherwise pick.
-     */
-    suspend fun chainFor(context: Context, lineName: String, termini: List<String>): List<PhysicalStop> {
-        val cacheKey = lineName + "|" + termini.sorted().joinToString(",")
-        chainCache[cacheKey]?.let { return it }
-        ensureLoaded(context.applicationContext)
-
-        val lineId = lineIdByName?.get(lineName)
-        val rows = lineId?.let { seqByLineId?.get(it) }.orEmpty()
-        if (rows.isEmpty()) {
-            chainCache[cacheKey] = emptyList()
-            return emptyList()
+    private suspend fun ensureLoaded(context: Context) {
+        if (byLine != null) return
+        mutex.withLock {
+            if (byLine == null) byLine = load(context)
         }
+    }
 
-        val chain = withContext(Dispatchers.Default) {
-            val byPattern = rows.groupBy { it.direction + "|" + it.pattern }
-            val termNorms = termini.map { normalize(it) }.filter { it.isNotBlank() }
-
-            fun matchesTerm(n: String) = termNorms.any { it.contains(n) || n.contains(it) }
-
-            // Prefer the longest pattern whose BOTH ends are live termini — the real
-            // end-to-end service. Matching only the terminus lets a rare long variant win
-            // because its end happens to match (e.g. 44's 24-stop Winckelmannstraße →
-            // Schottentor ends at a live terminus but starts off today's route), dragging
-            // the far end out. Fall back to a terminus-only match, then longest overall.
-            var bothEnds: List<Seq>? = null
-            var oneEnd: List<Seq>? = null
-            for ((_, seqs) in byPattern) {
-                val ordered = seqs.sortedBy { it.order }
-                val firstName = StopRepository.stopForRbl(context, ordered.first().rbl)?.name?.let { normalize(it) } ?: continue
-                val lastName = StopRepository.stopForRbl(context, ordered.last().rbl)?.name?.let { normalize(it) } ?: continue
-                when {
-                    matchesTerm(firstName) && matchesTerm(lastName) ->
-                        if (bothEnds == null || ordered.size > bothEnds.size) bothEnds = ordered
-                    matchesTerm(lastName) ->
-                        if (oneEnd == null || ordered.size > oneEnd.size) oneEnd = ordered
+    // line_routes.csv: line;headsign;seq;diva
+    private suspend fun load(context: Context): Map<String, List<Route>> =
+        withContext(Dispatchers.IO) {
+            val acc = LinkedHashMap<Pair<String, String>, MutableList<Pair<Int, String>>>()
+            TransitData.open(context, "line_routes.csv").bufferedReader().useLines { lines ->
+                lines.drop(1).forEach { row ->
+                    val c = row.split(';')
+                    if (c.size < 4) return@forEach
+                    val line = c[0].trim()
+                    val headsign = c[1].trim()
+                    val seq = c[2].trim().toIntOrNull() ?: return@forEach
+                    val diva = c[3].trim()
+                    if (line.isEmpty() || diva.isEmpty()) return@forEach
+                    acc.getOrPut(line to headsign) { mutableListOf() }.add(seq to diva)
                 }
             }
-            val chosen = bothEnds ?: oneEnd
-                ?: byPattern.values.maxByOrNull { it.size }?.sortedBy { it.order }.orEmpty()
-
-            val out = ArrayList<PhysicalStop>()
-            var lastDiva: String? = null
-            for (s in chosen) {
-                val stop = StopRepository.stopForRbl(context, s.rbl) ?: continue
-                if (stop.diva != lastDiva) {
-                    out.add(stop)
-                    lastDiva = stop.diva
-                }
+            val out = HashMap<String, MutableList<Route>>()
+            for ((key, rows) in acc) {
+                val (line, headsign) = key
+                val divas = rows.sortedBy { it.first }.map { it.second }
+                out.getOrPut(line) { mutableListOf() }.add(Route(headsign, divas))
             }
             out
         }
-        chainCache[cacheKey] = chain
-        return chain
-    }
 
     private fun normalize(s: String): String {
         var t = s.trim().lowercase()
         for ((a, b) in listOf("ä" to "ae", "ö" to "oe", "ü" to "ue", "ß" to "ss")) t = t.replace(a, b)
         return t
     }
-
-    private suspend fun ensureLoaded(context: Context) {
-        if (lineIdByName != null && seqByLineId != null) return
-        mutex.withLock {
-            if (lineIdByName == null) lineIdByName = loadLinien(context)
-            if (seqByLineId == null) seqByLineId = loadFahrwege(context)
-        }
-    }
-
-    // linien.csv: LineID;LineText;SortingHelp;Realtime;MeansOfTransport
-    private suspend fun loadLinien(context: Context): Map<String, String> =
-        withContext(Dispatchers.IO) {
-            val m = HashMap<String, String>()
-            TransitData.open(context, "linien.csv").bufferedReader().useLines { lines ->
-                lines.drop(1).forEach { line ->
-                    val c = line.split(';')
-                    if (c.size < 2) return@forEach
-                    val id = c[0].trim()
-                    val text = c[1].trim()
-                    if (id.isNotEmpty() && text.isNotEmpty()) m[text] = id
-                }
-            }
-            m
-        }
-
-    // fahrwegverlaeufe.csv: LineID;PatternID;StopSeqCount;StopID;Direction
-    private suspend fun loadFahrwege(context: Context): Map<String, List<Seq>> =
-        withContext(Dispatchers.IO) {
-            val m = HashMap<String, MutableList<Seq>>()
-            TransitData.open(context, "fahrwegverlaeufe.csv").bufferedReader().useLines { lines ->
-                lines.drop(1).forEach { line ->
-                    val c = line.split(';')
-                    if (c.size < 5) return@forEach
-                    val lineId = c[0].trim()
-                    val pattern = c[1].trim()
-                    val order = c[2].trim().toIntOrNull() ?: return@forEach
-                    val rbl = c[3].trim().toIntOrNull() ?: return@forEach
-                    val dir = c[4].trim()
-                    m.getOrPut(lineId) { ArrayList() }.add(Seq(pattern, order, rbl, dir))
-                }
-            }
-            m
-        }
 }
