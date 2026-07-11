@@ -1,10 +1,13 @@
 package com.walzengroup.viennadepart
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -12,6 +15,7 @@ import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.walzengroup.viennadepart.data.LastConnectionStore
+import com.walzengroup.viennadepart.tile.EXTRA_FAVORITE_LINE
 import com.walzengroup.viennadepart.ui.DeparturesScreen
 import com.walzengroup.viennadepart.ui.FavoriteOpenScreen
 import com.walzengroup.viennadepart.ui.HomeScreen
@@ -20,12 +24,26 @@ import com.walzengroup.viennadepart.ui.StopLinesScreen
 import com.walzengroup.viennadepart.ui.theme.ViennaTheme
 
 class MainActivity : ComponentActivity() {
+    // A favorite line to open straight into, delivered by the honeycomb Tile (null = normal launch).
+    private val pendingFavorite = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        pendingFavorite.value = intent?.getStringExtra(EXTRA_FAVORITE_LINE)
         setContent {
             ViennaTheme {
                 val nav = rememberSwipeDismissableNavController()
                 val app: AppViewModel = viewModel()
+
+                // Tile deep-link: jump to the favorite's located departures, then clear it so the
+                // navigation fires once (and Back from departures returns Home).
+                val favoriteLine by pendingFavorite
+                LaunchedEffect(favoriteLine) {
+                    val line = favoriteLine ?: return@LaunchedEffect
+                    app.selectedLine = line
+                    nav.navigate("favorite")
+                    pendingFavorite.value = null
+                }
 
                 SwipeDismissableNavHost(navController = nav, startDestination = "home") {
                     composable("home") {
@@ -99,6 +117,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    // The Tile launches this activity again while it may already be running (singleTask); pick up
+    // the newly-tapped favorite so the deep-link effect re-fires.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingFavorite.value = intent.getStringExtra(EXTRA_FAVORITE_LINE)
     }
 }
 

@@ -1,6 +1,8 @@
 package com.walzengroup.viennadepart.data
 
 import android.content.Context
+import androidx.wear.tiles.TileService
+import com.walzengroup.viennadepart.tile.FavoritesTileService
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -42,6 +44,11 @@ object FavoritesStore {
 
     private fun save(context: Context, favs: List<Favorite>) {
         prefs(context).edit().putString(KEY, json.encodeToString(serializer, favs)).apply()
+        // Pinned set changed → ask the framework to rebuild the honeycomb tile now.
+        runCatching {
+            TileService.getUpdater(context.applicationContext)
+                .requestUpdate(FavoritesTileService::class.java)
+        }
     }
 
     private fun prefs(context: Context) =
