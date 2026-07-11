@@ -104,6 +104,10 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
     // The route the user is riding (empty until the live termini match a pattern).
     var chain by remember(line) { mutableStateOf<List<PhysicalStop>>(emptyList()) }
     var lineType by remember(line) { mutableStateOf<String?>(null) }
+    // The opened stop's latest departures, held ABOVE the key(stops) block so that when the
+    // chain resolves and rebuilds the pager, its page seeds from this instead of re-flashing
+    // the spinner.
+    var openedUi by remember(stop.diva, line) { mutableStateOf<DeparturesUi?>(null) }
     // Stops to crown through: the matched chain if it includes this stop, else just it.
     val stops = remember(chain, stop.diva) {
         val idx = chain.indexOfFirst { it.diva == stop.diva }
@@ -213,8 +217,15 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                                         // Live refresh only for the stop on screen.
                                         refreshMs = if (isCurrent) 30_000 else 0,
                                         key = pageStop.diva,
+                                        // Seed the opened stop's rebuilt page so the chain-resolve
+                                        // rebuild doesn't re-flash the spinner.
+                                        initial = if (pageStop.diva == stop.diva) openedUi else null,
                                     ) { ui ->
                                         LaunchedEffect(ui.lineType) { lineType = ui.lineType }
+                                        // Keep the opened stop's data warm for the pager rebuild.
+                                        LaunchedEffect(pageStop.diva, ui) {
+                                            if (pageStop.diva == stop.diva) openedUi = ui
+                                        }
                                         // Opening a station's departures records it as recent
                                         // (once per stop view, not on every 30s refresh).
                                         LaunchedEffect(pageStop.diva, ui.lineType) {

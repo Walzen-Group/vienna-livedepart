@@ -46,6 +46,8 @@ val RowSurface = Color(0xFF1E1E25)
  * [key] re-runs the loader when it changes; the previous content stays on screen
  * during the reload (no spinner) unless nothing has loaded yet — so stepping between
  * inputs (e.g. crown = next stop) stays smooth.
+ * [initial] seeds the content so the spinner is skipped when the caller already has a
+ * value (e.g. this composable was just recreated and we don't want to re-flash).
  */
 @Composable
 fun <T> Loadable(
@@ -53,10 +55,11 @@ fun <T> Loadable(
     loadingLabel: String? = null,
     refreshMs: Long = 0,
     key: Any? = Unit,
+    initial: T? = null,
     content: @Composable (T) -> Unit,
 ) {
     var attempt by remember { mutableIntStateOf(0) }
-    var state by remember { mutableStateOf<Result<T>?>(null) }
+    var state by remember { mutableStateOf<Result<T>?>(initial?.let { Result.success(it) }) }
     // refreshMs is a key so toggling live refresh (e.g. only the on-screen stop) restarts the loop.
     LaunchedEffect(attempt, key, refreshMs) {
         val result = runCatching { loader() }
