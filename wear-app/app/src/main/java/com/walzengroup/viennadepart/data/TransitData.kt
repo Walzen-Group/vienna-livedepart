@@ -8,6 +8,8 @@ import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * The bundled OGD reference CSVs, with an optional refreshed copy in internal
@@ -44,14 +46,29 @@ object TransitData {
     fun lastUpdated(context: Context): Long? =
         prefs(context).getLong(K_UPDATED, 0L).takeIf { it > 0 }
 
+    /** Source date (YYYY-MM-DD) of the stop table, from the OGD Last-Modified; null if bundled. */
+    fun stopsDate(context: Context): String? =
+        prefs(context).getString("date_haltepunkte.csv", null)?.takeIf { it.isNotBlank() }
+
+    /** Generation date embedded in line_routes.csv (#generated=YYYY-MM-DD); null if absent. */
+    fun routesDate(context: Context): String? = runCatching {
+        open(context, "line_routes.csv").bufferedReader().use { br ->
+            val first = br.readLine().orEmpty()
+            if (first.startsWith("#generated=")) first.removePrefix("#generated=").trim().ifBlank { null } else null
+        }
+    }.getOrNull()
+
     /** Download, validate, and swap in fresh CSVs; clears parsed caches on success. */
     suspend fun refresh(context: Context): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val dir = File(context.applicationContext.filesDir, DIR).apply { mkdirs() }
             for (spec in SPECS) {
                 val tmp = File(dir, spec.name + ".tmp")
-                download(spec.url, tmp)
-                val firstLine = tmp.bufferedReader(Charsets.UTF_8).useLines { it.firstOrNull().orEmpty() }
+                val lastModified = download(spec.url, tmp)
+                // First non-comment line: line_routes.csv leads with a #generated= line.
+                val firstLine = tmp.bufferedReader(Charsets.UTF_8).useLines { seq ->
+                    seq.firstOrNull { !it.startsWith("#") }.orEmpty()
+                }
                 require(tmp.length() > 100 && firstLine.startsWith(spec.headerPrefix)) {
                     "Unexpected data for ${spec.name}"
                 }
@@ -60,6 +77,7 @@ object TransitData {
                     tmp.copyTo(dest, overwrite = true)
                     tmp.delete()
                 }
+                prefs(context).edit().putString("date_${spec.name}", httpDateToIso(lastModified).orEmpty()).apply()
             }
             prefs(context).edit().putLong(K_UPDATED, System.currentTimeMillis()).apply()
             // Next reads re-parse from the new files.
@@ -68,7 +86,8 @@ object TransitData {
         }
     }
 
-    private fun download(url: String, dest: File) {
+    /** Downloads [url] to [dest]; returns the server's Last-Modified header if present. */
+    private fun download(url: String, dest: File): String? {
         val conn = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 15_000
             readTimeout = 30_000
@@ -76,9 +95,17 @@ object TransitData {
         }
         try {
             conn.inputStream.use { input -> dest.outputStream().use { input.copyTo(it) } }
+            return conn.getHeaderField("Last-Modified")
         } finally {
             conn.disconnect()
         }
+    }
+
+    // HTTP date ("Wed, 09 Jul 2026 12:00:00 GMT") -> "2026-07-09", or null if unparseable.
+    private fun httpDateToIso(s: String?): String? = s?.let {
+        runCatching {
+            ZonedDateTime.parse(it, DateTimeFormatter.RFC_1123_DATE_TIME).toLocalDate().toString()
+        }.getOrNull()
     }
 
     private fun prefs(context: Context) =

@@ -108,9 +108,10 @@ object RouteRepository {
         withContext(Dispatchers.IO) {
             val acc = LinkedHashMap<Pair<String, String>, MutableList<Pair<Int, String>>>()
             TransitData.open(context, "line_routes.csv").bufferedReader().useLines { lines ->
-                lines.drop(1).forEach { row ->
+                lines.forEach { row ->
+                    if (row.isEmpty() || row.startsWith("#")) return@forEach // metadata comment
                     val c = row.split(';')
-                    if (c.size < 4) return@forEach
+                    if (c.size < 4) return@forEach // the header row's seq isn't an int, so it drops out below
                     val line = c[0].trim()
                     val headsign = c[1].trim()
                     val seq = c[2].trim().toIntOrNull() ?: return@forEach

@@ -17,7 +17,7 @@ Usage:
 Run weekly in CI; commit the resulting line_routes.csv.
 """
 from __future__ import annotations
-import argparse, csv, math, os, re, sys, tempfile, urllib.request
+import argparse, csv, datetime, math, os, re, sys, tempfile, urllib.request
 from collections import defaultdict, Counter
 
 GTFS_BASE = "https://www.wienerlinien.at/ogd_realtime/doku/ogd/gtfs/"
@@ -187,8 +187,10 @@ def main():
         for i, diva in enumerate(seq):
             rows_out.append((line, hs, i, diva))
 
+    gen = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w", encoding="utf-8", newline="") as fh:
+        fh.write(f"#generated={gen}\n")
         w = csv.writer(fh, delimiter=";")
         w.writerow(["line", "headsign", "seq", "diva"])
         w.writerows(rows_out)

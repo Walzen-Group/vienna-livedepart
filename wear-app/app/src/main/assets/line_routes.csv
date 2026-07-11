@@ -1,3 +1,4 @@
+#generated=2026-07-11
 line;headsign;seq;diva
 1;Bösendorferstraße/Karlsplatz;0;60200486
 1;Bösendorferstraße/Karlsplatz;1;60201497
@@ -670,27 +671,26 @@ line;headsign;seq;diva
 12A;Schmelz, Gablenzgasse;2;60200306
 12A;Schmelz, Gablenzgasse;3;60201233
 12A;Schmelz, Gablenzgasse;4;60200104
-12A;Schmelz, Gablenzgasse;5;60200137
-12A;Schmelz, Gablenzgasse;6;60201018
-12A;Schmelz, Gablenzgasse;7;60201085
-12A;Schmelz, Gablenzgasse;8;60200696
-12A;Schmelz, Gablenzgasse;9;60200041
-12A;Schmelz, Gablenzgasse;10;60200379
-12A;Schmelz, Gablenzgasse;11;60201868
-12A;Schmelz, Gablenzgasse;12;60200082
-12A;Schmelz, Gablenzgasse;13;60200820
-12A;Schmelz, Gablenzgasse;14;60201324
-12A;Schmelz, Gablenzgasse;15;60200501
-12A;Schmelz, Gablenzgasse;16;60200712
-12A;Schmelz, Gablenzgasse;17;60200437
-12A;Schmelz, Gablenzgasse;18;60201179
-12A;Schmelz, Gablenzgasse;19;60201200
-12A;Schmelz, Gablenzgasse;20;60200556
-12A;Schmelz, Gablenzgasse;21;60200606
-12A;Schmelz, Gablenzgasse;22;60201713
-12A;Schmelz, Gablenzgasse;23;60200877
-12A;Schmelz, Gablenzgasse;24;60201013
-12A;Schmelz, Gablenzgasse;25;60201664
+12A;Schmelz, Gablenzgasse;5;60201018
+12A;Schmelz, Gablenzgasse;6;60201085
+12A;Schmelz, Gablenzgasse;7;60200696
+12A;Schmelz, Gablenzgasse;8;60200041
+12A;Schmelz, Gablenzgasse;9;60200379
+12A;Schmelz, Gablenzgasse;10;60201868
+12A;Schmelz, Gablenzgasse;11;60200082
+12A;Schmelz, Gablenzgasse;12;60200820
+12A;Schmelz, Gablenzgasse;13;60201324
+12A;Schmelz, Gablenzgasse;14;60200501
+12A;Schmelz, Gablenzgasse;15;60200712
+12A;Schmelz, Gablenzgasse;16;60200437
+12A;Schmelz, Gablenzgasse;17;60201179
+12A;Schmelz, Gablenzgasse;18;60201200
+12A;Schmelz, Gablenzgasse;19;60200556
+12A;Schmelz, Gablenzgasse;20;60200606
+12A;Schmelz, Gablenzgasse;21;60201713
+12A;Schmelz, Gablenzgasse;22;60200877
+12A;Schmelz, Gablenzgasse;23;60201013
+12A;Schmelz, Gablenzgasse;24;60201664
 13A;Burggasse/Neubaugasse;0;60201349
 13A;Burggasse/Neubaugasse;1;60200989
 13A;Burggasse/Neubaugasse;2;60200886
@@ -736,8 +736,7 @@ line;headsign;seq;diva
 13A;Margaretenplatz/Schönbrunner Straße;7;60200768
 13A;Margaretenplatz/Schönbrunner Straße;8;60201529
 13A;Margaretenplatz/Schönbrunner Straße;9;60200830
-13A;Margaretenplatz/Schönbrunner Straße;10;60200137
-13A;Margaretenplatz/Schönbrunner Straße;11;60200829
+13A;Margaretenplatz/Schönbrunner Straße;10;60200829
 13A;Neubaugasse;0;60201349
 13A;Neubaugasse;1;60200989
 13A;Neubaugasse;2;60200886
@@ -788,10 +787,9 @@ line;headsign;seq;diva
 14A;Haus des Meeres;7;60201286
 14A;Haus des Meeres;8;60201233
 14A;Haus des Meeres;9;60200104
-14A;Haus des Meeres;10;60200137
-14A;Haus des Meeres;11;60201018
-14A;Haus des Meeres;12;60200293
-14A;Haus des Meeres;13;60200662
+14A;Haus des Meeres;10;60201018
+14A;Haus des Meeres;11;60200293
+14A;Haus des Meeres;12;60200662
 14A;Neubaugasse;0;60201095
 14A;Neubaugasse;1;60201300
 14A;Neubaugasse;2;60200666
@@ -802,10 +800,9 @@ line;headsign;seq;diva
 14A;Neubaugasse;7;60201286
 14A;Neubaugasse;8;60201233
 14A;Neubaugasse;9;60200104
-14A;Neubaugasse;10;60200137
-14A;Neubaugasse;11;60201018
-14A;Neubaugasse;12;60200293
-14A;Neubaugasse;13;60200056
+14A;Neubaugasse;10;60201018
+14A;Neubaugasse;11;60200293
+14A;Neubaugasse;12;60200056
 14A;Reumannplatz;0;60200056
 14A;Reumannplatz;1;60200662
 14A;Reumannplatz;2;60200293
@@ -4240,13 +4237,12 @@ line;headsign;seq;diva
 59A;Oper/Karlsplatz;6;60200269
 59A;Oper/Karlsplatz;7;60201086
 59A;Oper/Karlsplatz;8;60200104
-59A;Oper/Karlsplatz;9;60200137
-59A;Oper/Karlsplatz;10;60200829
-59A;Oper/Karlsplatz;11;60200517
-59A;Oper/Karlsplatz;12;60201047
-59A;Oper/Karlsplatz;13;60200193
-59A;Oper/Karlsplatz;14;60200657
-59A;Oper/Karlsplatz;15;60200975
+59A;Oper/Karlsplatz;9;60200829
+59A;Oper/Karlsplatz;10;60200517
+59A;Oper/Karlsplatz;11;60201047
+59A;Oper/Karlsplatz;12;60200193
+59A;Oper/Karlsplatz;13;60200657
+59A;Oper/Karlsplatz;14;60200975
 5A;Gaußplatz;0;60200424
 5A;Gaußplatz;1;60200011
 5A;Gaußplatz;2;60200781

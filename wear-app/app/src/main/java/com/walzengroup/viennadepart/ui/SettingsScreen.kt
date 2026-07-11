@@ -45,6 +45,8 @@ fun SettingsPage() {
     var updating by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf<String?>(null) }
     var updatedAt by remember { mutableStateOf(TransitData.lastUpdated(context)) }
+    var stopsDate by remember { mutableStateOf(TransitData.stopsDate(context)) }
+    var routesDate by remember { mutableStateOf(TransitData.routesDate(context)) }
     var openToFavorites by remember { mutableStateOf(AppSettings.openToFavorites(context)) }
 
     Column(
@@ -58,8 +60,10 @@ fun SettingsPage() {
         Text("Settings", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Spacer(Modifier.height(4.dp))
         Text("Transit data", color = MutedText, fontSize = 11.sp)
-        val label = updatedAt?.let { "Updated ${DateUtils.getRelativeTimeSpanString(it)}" }
-            ?: "Using bundled data"
+        Text("Stops: ${stopsDate ?: "bundled"}", color = MutedText, fontSize = 10.sp)
+        Text("Routes: ${routesDate ?: "bundled"}", color = MutedText, fontSize = 10.sp)
+        val label = updatedAt?.let { "Downloaded ${DateUtils.getRelativeTimeSpanString(it)}" }
+            ?: "Not downloaded yet"
         Text(label, color = MutedText, fontSize = 10.sp, textAlign = TextAlign.Center)
         Spacer(Modifier.height(8.dp))
         Chip(
@@ -72,6 +76,8 @@ fun SettingsPage() {
                     updating = false
                     if (result.isSuccess) {
                         updatedAt = TransitData.lastUpdated(context)
+                        stopsDate = TransitData.stopsDate(context)
+                        routesDate = TransitData.routesDate(context)
                         status = "Up to date"
                     } else {
                         status = "Update failed — check Wi-Fi"
