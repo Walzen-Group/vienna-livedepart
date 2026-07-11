@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -102,13 +103,25 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
         val focusRequester = rememberActiveFocusRequester()
         var acc by remember { mutableFloatStateOf(0f) }
         var targetPage by remember { mutableIntStateOf(startIndex) }
-        var everScrolled by remember { mutableStateOf(false) }
+        // Stops the user has opened, hoisted above the pager so a loaded stop stays loaded
+        // when the page scrolls out of composition and back. The opened stop starts loaded.
+        val loaded = remember { mutableStateListOf(stops[startIndex].diva) }
+        // Slide one step at a time, but snap when the crown jumps several stops at once so
+        // fast crowning never falls behind and stalls. LaunchedEffect(targetPage) cancels an
+        // in-flight slide when the next detent arrives, so a multi-stop jump lands as a snap.
+        LaunchedEffect(targetPage) {
+            val current = pagerState.currentPage
+            when {
+                targetPage == current -> {}
+                kotlin.math.abs(targetPage - current) > 1 -> pagerState.scrollToPage(targetPage)
+                else -> pagerState.animateScrollToPage(targetPage, animationSpec = tween(durationMillis = 420))
+            }
+        }
         // Chrome (background, header, star, position indicator) is persistent and lives
         // ABOVE the pager, so crowning between stops slides only the departures body over
         // a single fixed sheet — and no nested Scaffold steals the crown's focus.
         val lineColor = ModeColor.forLine(line, lineType)
         val ground = groundBrush(lerp(Color.Black, lineColor, 0.45f))
-        val currentStop = stops[pagerState.currentPage.coerceIn(0, stops.lastIndex)]
 
         // Curved rotary position tracker that hugs the bezel (native Wear indicator).
         val stopIndicator = remember(stops.size) { StopIndicatorState(stops.size) }
@@ -132,7 +145,6 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Spacer(Modifier.height(22.dp)) // clear the TimeText curve
-                    Header(line, currentStop.name, lineColor)
                     VerticalPager(
                         state = pagerState,
                         userScrollEnabled = false, // crown-only; the inner list keeps touch-scroll
@@ -143,36 +155,48 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                             .onRotaryScrollEvent { e ->
                                 acc += e.verticalScrollPixels
                                 val threshold = 60f
-                                var moved = false
-                                while (acc >= threshold) { targetPage = (targetPage + 1).coerceAtMost(stops.lastIndex); acc -= threshold; moved = true }
-                                while (acc <= -threshold) { targetPage = (targetPage - 1).coerceAtLeast(0); acc += threshold; moved = true }
-                                if (moved) { everScrolled = true; pagerState.requestScrollToPage(targetPage) }
+                                while (acc >= threshold) { targetPage = (targetPage + 1).coerceAtMost(stops.lastIndex); acc -= threshold }
+                                while (acc <= -threshold) { targetPage = (targetPage - 1).coerceAtLeast(0); acc += threshold }
                                 true
                             }
                             .focusRequester(focusRequester)
                             .focusable(),
                     ) { page ->
                         val pageStop = stops[page]
-                        // The starting stop loads automatically; stops reached by crowning show
-                        // a reload button, so scrolling through the line fires no requests.
-                        var load by remember(pageStop.diva) { mutableStateOf(!everScrolled) }
-                        if (load) {
-                            Loadable(
-                                loader = { repo.departuresForLine(pageStop, line) },
-                                refreshMs = 30_000,
-                                key = pageStop.diva,
-                            ) { ui ->
-                                LaunchedEffect(ui.lineType) { lineType = ui.lineType }
-                                val termini = ui.directions.map { it.label }
-                                LaunchedEffect(termini) {
-                                    if (chain.isEmpty() && termini.isNotEmpty()) {
-                                        chain = RouteRepository.chainFor(context, line, termini)
+                        // A stop stays loaded once opened (state hoisted in `loaded`); crowned-to
+                        // stops show a reload button until tapped, so scrolling fires no requests.
+                        val isLoaded = pageStop.diva in loaded
+                        val isCurrent = page == pagerState.currentPage
+                        // The header rides inside the page so the line badge + station name
+                        // slide vertically with the stop. The name comes from bundled stop
+                        // data, so it stays put (no blank) while the body loads.
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Spacer(Modifier.height(8.dp)) // drop the header into the wider band
+                            Header(line, pageStop.name, lineColor)
+                            Box(Modifier.weight(1f).fillMaxWidth()) {
+                                if (isLoaded) {
+                                    Loadable(
+                                        loader = { repo.departuresForLine(pageStop, line) },
+                                        // Live refresh only for the stop on screen.
+                                        refreshMs = if (isCurrent) 30_000 else 0,
+                                        key = pageStop.diva,
+                                    ) { ui ->
+                                        LaunchedEffect(ui.lineType) { lineType = ui.lineType }
+                                        val termini = ui.directions.map { it.label }
+                                        LaunchedEffect(termini) {
+                                            if (chain.isEmpty() && termini.isNotEmpty()) {
+                                                chain = RouteRepository.chainFor(context, line, termini)
+                                            }
+                                        }
+                                        DeparturesBody(ui, app)
                                     }
+                                } else {
+                                    ReloadBody(onReload = { if (pageStop.diva !in loaded) loaded.add(pageStop.diva) })
                                 }
-                                DeparturesBody(ui, app)
                             }
-                        } else {
-                            ReloadBody(onReload = { load = true })
                         }
                     }
                 }
@@ -184,7 +208,11 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
 /** Centered reload button shown for a crowned-to station until tapped (no request until then). */
 @Composable
 private fun ReloadBody(onReload: () -> Unit) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -199,6 +227,8 @@ private fun ReloadBody(onReload: () -> Unit) {
                 modifier = Modifier.size(24.dp),
             )
         }
+        Spacer(Modifier.height(8.dp))
+        Text("Tap to load stations", color = MutedText, fontSize = 12.sp)
     }
 }
 
@@ -320,7 +350,9 @@ private fun Header(line: String, stopName: String, lineColor: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth(0.66f).padding(vertical = 2.dp),
+        // A touch wider than before (it sits lower now, where the circle is wider) with a
+        // small horizontal inset so the badge never reaches the round clip edge.
+        modifier = Modifier.fillMaxWidth(0.72f).padding(horizontal = 6.dp, vertical = 2.dp),
     ) {
         SquareBadge(line, lineColor, size = 22)
         Spacer(Modifier.width(6.dp))
@@ -369,15 +401,21 @@ private fun DirectionList(
 ) {
     val multi = page.platforms.size >= 2
 
-    // Single platform: just a couple of pills — static and centered, not scrollable.
+    // Single platform: just a couple of pills — static and centered, not scrollable. The
+    // pills center in the available space; the star sits at the bottom of the page.
     if (!multi) {
         Column(
             modifier = Modifier.fillMaxSize().padding(bottom = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(1.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            page.platforms.firstOrNull()?.departures?.forEach { dep ->
-                DepartureRow(dep, lineColor)
+            Column(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(1.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                page.platforms.firstOrNull()?.departures?.forEach { dep ->
+                    DepartureRow(dep, lineColor)
+                }
             }
             FavoriteStar(favorited, onToggleFavorite)
         }

@@ -53,7 +53,8 @@ fun <T> Loadable(
 ) {
     var attempt by remember { mutableIntStateOf(0) }
     var state by remember { mutableStateOf<Result<T>?>(null) }
-    LaunchedEffect(attempt, key) {
+    // refreshMs is a key so toggling live refresh (e.g. only the on-screen stop) restarts the loop.
+    LaunchedEffect(attempt, key, refreshMs) {
         val result = runCatching { loader() }
         // Replace on success; on failure keep prior content unless there's none yet.
         if (result.isSuccess || state == null) state = result
