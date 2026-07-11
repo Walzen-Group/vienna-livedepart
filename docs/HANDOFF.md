@@ -68,6 +68,15 @@ session.
 - **Emulator location (needed for Nearby / favorites open):**
   `adb -s emulator-5554 emu geo fix 16.3726 48.2088` (Stephansplatz). A reboot
   clears it — re-set after `adb reboot`.
+- **Release build (signed, for a real watch):** `./gradlew.bat :app:assembleRelease`
+  → `app/build/outputs/apk/release/app-release.apk`. Signing reads
+  `wear-app/keystore.properties` (gitignored) which points at `wear-app/vienna-release.jks`
+  (also gitignored, alias `vienna`). **Back up the .jks + password** — losing it means
+  a different signature, so updates need an uninstall (wipes favorites/recents). If the
+  properties file is absent the release build is left unsigned. Sideload to a watch over
+  wireless adb: `adb pair <ip:port>`, `adb connect <ip:port>`, then
+  `adb -s <watch> install -r app-release.apk`. Watch needs Wear OS 3+ (minSdk 30) and a
+  network (Wi-Fi / LTE / phone tether); grant location on first launch.
 - **Working split:** Claude edits code and can build + install + launch + reach
   the Wiener Linien API (curl / ctx_execute) to verify data. The developer
   watches the emulator and gives feedback.
