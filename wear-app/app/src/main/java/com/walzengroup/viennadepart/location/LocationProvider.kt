@@ -5,27 +5,58 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationManager
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
- * A one-shot current-location fetch via the fused location provider. The caller
- * must hold location permission (checked with [hasLocationPermission]) before
- * calling [current].
+ * One-shot current-location fetch. The caller must hold location permission
+ * (see [hasLocationPermission]) before calling [current].
+ *
+ * Robust against the emulator: it tries an active fused fix but bounds it with a
+ * timeout so it can never hang, then falls back to the framework's last-known
+ * location (which the emulator populates as soon as you set a point, and which
+ * doesn't need Google Play services).
  */
 class LocationProvider(context: Context) {
 
-    private val client = LocationServices.getFusedLocationProviderClient(context.applicationContext)
+    private val app = context.applicationContext
+    private val fused = LocationServices.getFusedLocationProviderClient(app)
 
     @SuppressLint("MissingPermission")
-    suspend fun current(): Location? = suspendCancellableCoroutine { cont ->
-        client.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
-            .addOnSuccessListener { cont.resume(it) }
-            .addOnFailureListener { cont.resumeWithException(it) }
+    suspend fun current(): Location? {
+        val fresh = withTimeoutOrNull(10_000) {
+            val cts = CancellationTokenSource()
+            suspendCancellableCoroutine { cont ->
+                fused.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.token)
+                    .addOnSuccessListener { cont.resume(it) }
+                    .addOnFailureListener { cont.resume(null) }
+                cont.invokeOnCancellation { cts.cancel() }
+            }
+        }
+        return fresh ?: lastKnown()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun lastKnown(): Location? {
+        val lm = app.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
+        val providers = listOf(
+            LocationManager.GPS_PROVIDER,
+            LocationManager.NETWORK_PROVIDER,
+            LocationManager.PASSIVE_PROVIDER,
+        )
+        for (provider in providers) {
+            val loc = runCatching {
+                if (lm.isProviderEnabled(provider)) lm.getLastKnownLocation(provider) else null
+            }.getOrNull()
+            if (loc != null) return loc
+        }
+        return null
     }
 }
 
