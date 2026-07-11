@@ -5,3 +5,6 @@ you.md
 # Release signing — keep the keystore and its passwords out of git
 wear-app/keystore.properties
 wear-app/*.jks
+
+
+.direnv
