@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModel
 import com.walzengroup.viennadepart.data.Favorite
 import com.walzengroup.viennadepart.data.FavoritesStore
 import com.walzengroup.viennadepart.data.HistoryStop
+import com.walzengroup.viennadepart.data.RecentStop
+import com.walzengroup.viennadepart.data.RecentStopsStore
 import com.walzengroup.viennadepart.data.SearchHistoryStore
 import com.walzengroup.viennadepart.data.stops.PhysicalStop
 import com.walzengroup.viennadepart.data.stops.StopDistance
@@ -27,6 +29,8 @@ class AppViewModel : ViewModel() {
         private set
     var favorites by mutableStateOf<List<Favorite>>(emptyList())
         private set
+    var recentStops by mutableStateOf<List<RecentStop>>(emptyList())
+        private set
 
     private var loaded = false
 
@@ -34,7 +38,19 @@ class AppViewModel : ViewModel() {
         if (loaded) return
         searchHistory = SearchHistoryStore.load(context)
         favorites = FavoritesStore.list(context)
+        recentStops = RecentStopsStore.load(context)
         loaded = true
+    }
+
+    /** Record a station the user opened departures for (dedup by station, most-recent-first). */
+    fun addRecent(context: Context, stop: PhysicalStop, line: String, type: String?) {
+        RecentStopsStore.add(context, stop, line, type)
+        recentStops = RecentStopsStore.load(context)
+    }
+
+    fun clearRecents(context: Context) {
+        RecentStopsStore.clear(context)
+        recentStops = emptyList()
     }
 
     fun addSearch(context: Context, stop: PhysicalStop) {

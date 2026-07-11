@@ -24,11 +24,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -41,7 +44,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +55,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
@@ -65,10 +71,10 @@ import com.walzengroup.viennadepart.R
 import com.walzengroup.viennadepart.data.AppSettings
 import com.walzengroup.viennadepart.data.Favorite
 import com.walzengroup.viennadepart.data.HistoryStop
-import com.walzengroup.viennadepart.data.LastConnection
-import com.walzengroup.viennadepart.data.LastConnectionStore
+import com.walzengroup.viennadepart.data.RecentStop
 import com.walzengroup.viennadepart.data.stops.PhysicalStop
 import com.walzengroup.viennadepart.data.stops.StopRepository
+import com.walzengroup.viennadepart.ui.common.ClearAllButton
 import com.walzengroup.viennadepart.ui.common.MutedText
 import com.walzengroup.viennadepart.ui.common.SquareBadge
 import com.walzengroup.viennadepart.ui.theme.ModeColor
@@ -101,7 +107,7 @@ fun HomeScreen(
             HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
                 when (page) {
                     0 -> FavoritesPage(favorites = app.favorites, onOpen = onOpenFavorite)
-                    1 -> NearbyPage(onLocate = onLocate, onOpenLast = onOpenLast)
+                    1 -> NearbyPage(app = app, onLocate = onLocate, onOpenLast = onOpenLast)
                     2 -> SearchPage(app = app, onStopSelected = onStopSelected)
                     else -> SettingsPage()
                 }
@@ -116,89 +122,136 @@ fun HomeScreen(
 }
 
 /**
- * Nearby page: the split pill — Locate on the left, recent connections on the
- * right. One big blob for a single recent, two stacked blobs once there are two.
+ * Nearby page: the split pill (Locate + the two most recent stations) at the top, and,
+ * once there are more than two recents, the rest scroll below as chips. Tapping any
+ * recent reopens departures on the line last ridden there.
  */
 @Composable
-private fun NearbyPage(onLocate: () -> Unit, onOpenLast: (PhysicalStop, String) -> Unit) {
+private fun NearbyPage(
+    app: AppViewModel,
+    onLocate: () -> Unit,
+    onOpenLast: (PhysicalStop, String) -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val recents = remember { LastConnectionStore.load(context) } // most-recent-first, 0..2
+    val recents = app.recentStops
 
-    fun open(recent: LastConnection): () -> Unit = {
+    val openRecent: (RecentStop) -> Unit = { r ->
         scope.launch {
-            val stop = StopRepository.stops(context).firstOrNull { it.diva == recent.diva }
-            if (stop != null) onOpenLast(stop, recent.line)
+            val stop = StopRepository.stops(context).firstOrNull { it.diva == r.diva }
+            if (stop != null) onOpenLast(stop, r.line)
         }
     }
 
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Row(
-            modifier = Modifier.fillMaxWidth(0.92f).fillMaxHeight(0.58f),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            PillHalf(
-                shape = RoundedCornerShape(
-                    topStart = 40.dp, bottomStart = 40.dp, topEnd = 12.dp, bottomEnd = 12.dp,
-                ),
-                onClick = onLocate,
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_pin),
-                    contentDescription = "Find nearby stops",
-                    modifier = Modifier.size(28.dp),
-                )
-                Spacer(Modifier.height(6.dp))
-                Text("Locate", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-            }
+    // No recents: just the centered split pill (Locate + an empty prompt).
+    if (recents.isEmpty()) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            SplitPill(onLocate, recents, openRecent, Modifier.fillMaxWidth(0.92f).fillMaxHeight(0.58f))
+        }
+        return
+    }
 
+    // With recents: the pill sits dead-center on the first screenful (equal top/bottom gaps,
+    // same 0.58 height as before). Overflow chips flow into the bottom gap so the first one
+    // peeks up as a scroll hint; Clear all is docked at the end of the scrolling list.
+    val density = LocalDensity.current
+    var hPx by remember { mutableFloatStateOf(0f) }
+    val scrollState = rememberScrollState()
+    Box(Modifier.fillMaxSize().onSizeChanged { hPx = it.height.toFloat() }) {
+        if (hPx > 0f) {
+            val pillH = with(density) { (hPx * 0.58f).toDp() }
+            val topGap = with(density) { (hPx * 0.21f).toDp() }
             Column(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                when (recents.size) {
-                    0 -> RecentBlob(
-                        shape = RoundedCornerShape(
-                            topStart = 12.dp, bottomStart = 12.dp, topEnd = 40.dp, bottomEnd = 40.dp,
-                        ),
-                        recent = null, big = true, onOpen = null,
-                        modifier = Modifier.fillMaxSize(),
+                Spacer(Modifier.height(topGap))
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(pillH),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    SplitPill(onLocate, recents.take(2), openRecent, Modifier.fillMaxWidth(0.92f).fillMaxHeight())
+                }
+                if (recents.size > 2) {
+                    // top gap = bottom gap (4 here + the first chip's own 6dp top padding)
+                    Text("Recent", color = MutedText, fontSize = 11.sp,
+                        modifier = Modifier.padding(top = 10.dp, bottom = 4.dp))
+                }
+                recents.drop(2).forEach { r ->
+                    Chip(
+                        onClick = { openRecent(r) },
+                        icon = { SquareBadge(r.line, ModeColor.forLine(r.line, r.type), size = 26) },
+                        label = { Text(r.name, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        colors = ChipDefaults.secondaryChipColors(),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
                     )
-                    1 -> RecentBlob(
-                        shape = RoundedCornerShape(
-                            topStart = 12.dp, bottomStart = 12.dp, topEnd = 40.dp, bottomEnd = 40.dp,
-                        ),
-                        recent = recents[0], big = true, onOpen = open(recents[0]),
-                        modifier = Modifier.fillMaxSize(),
+                }
+                Spacer(Modifier.height(5.dp))
+                ClearAllButton(onClick = { app.clearRecents(context) })
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+/** Locate on the left; the top two recent stations stacked on the right. */
+@Composable
+private fun SplitPill(
+    onLocate: () -> Unit,
+    recents: List<RecentStop>,
+    onOpen: (RecentStop) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        PillHalf(
+            shape = RoundedCornerShape(topStart = 40.dp, bottomStart = 40.dp, topEnd = 12.dp, bottomEnd = 12.dp),
+            onClick = onLocate,
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_pin),
+                contentDescription = "Find nearby stops",
+                modifier = Modifier.size(28.dp),
+            )
+            Spacer(Modifier.height(6.dp))
+            Text("Locate", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+        }
+
+        Column(
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            when (recents.size) {
+                0 -> RecentBlob(
+                    shape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp, topEnd = 40.dp, bottomEnd = 40.dp),
+                    recent = null, big = true, onOpen = null, modifier = Modifier.fillMaxSize(),
+                )
+                1 -> RecentBlob(
+                    shape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp, topEnd = 40.dp, bottomEnd = 40.dp),
+                    recent = recents[0], big = true, onOpen = { onOpen(recents[0]) }, modifier = Modifier.fillMaxSize(),
+                )
+                else -> {
+                    RecentBlob(
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 40.dp, bottomStart = 6.dp, bottomEnd = 6.dp),
+                        recent = recents[0], big = false, onOpen = { onOpen(recents[0]) },
+                        modifier = Modifier.fillMaxWidth().weight(1f),
                     )
-                    else -> {
-                        RecentBlob(
-                            shape = RoundedCornerShape(
-                                topStart = 12.dp, topEnd = 40.dp, bottomStart = 6.dp, bottomEnd = 6.dp,
-                            ),
-                            recent = recents[0], big = false, onOpen = open(recents[0]),
-                            modifier = Modifier.fillMaxWidth().weight(1f),
-                        )
-                        RecentBlob(
-                            shape = RoundedCornerShape(
-                                topStart = 6.dp, topEnd = 6.dp, bottomStart = 12.dp, bottomEnd = 40.dp,
-                            ),
-                            recent = recents[1], big = false, onOpen = open(recents[1]),
-                            modifier = Modifier.fillMaxWidth().weight(1f),
-                        )
-                    }
+                    RecentBlob(
+                        shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 12.dp, bottomEnd = 40.dp),
+                        recent = recents[1], big = false, onOpen = { onOpen(recents[1]) },
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                    )
                 }
             }
         }
     }
 }
 
-/** One recent-connection blob: line badge + stop name, or an empty prompt. */
+/** One recent-station blob: line badge + stop name, or an empty prompt. */
 @Composable
 private fun RecentBlob(
     shape: Shape,
-    recent: LastConnection?,
+    recent: RecentStop?,
     big: Boolean,
     onOpen: (() -> Unit)?,
     modifier: Modifier = Modifier,
@@ -208,7 +261,7 @@ private fun RecentBlob(
             SquareBadge(recent.line, ModeColor.forLine(recent.line, recent.type), size = if (big) 26 else 20)
             Spacer(Modifier.height(if (big) 6.dp else 3.dp))
             Text(
-                recent.stopName,
+                recent.name,
                 color = Color.White,
                 fontSize = if (big) 10.5.sp else 9.sp,
                 lineHeight = if (big) 12.sp else 10.sp,
@@ -373,8 +426,10 @@ private fun SearchPage(app: AppViewModel, onStopSelected: (PhysicalStop) -> Unit
     ScalingLazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 34.dp, bottom = 40.dp),
+        contentPadding = PaddingValues(top = 34.dp, bottom = 0.dp),
         autoCentering = null,
+        // No edge fisheye: keep every item (incl. Clear all) full size, like the Nearby page.
+        scalingParams = ScalingLazyColumnDefaults.scalingParams(edgeScale = 1f),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         item {
@@ -421,12 +476,12 @@ private fun SearchPage(app: AppViewModel, onStopSelected: (PhysicalStop) -> Unit
                 )
             }
             item {
-                Chip(
-                    onClick = { app.clearSearch(context) },
-                    label = { Text("Clear", color = MutedText) },
-                    colors = ChipDefaults.secondaryChipColors(),
-                    modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-                )
+                // Column so the spacers stack vertically; a bare item {} boxes its children.
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(Modifier.height(5.dp))
+                    ClearAllButton(onClick = { app.clearSearch(context) })
+                    Spacer(Modifier.height(8.dp))
+                }
             }
         }
     }
@@ -454,6 +509,7 @@ private fun SearchButton(
         Image(
             painter = painterResource(R.drawable.ic_search),
             contentDescription = "Search a stop",
+            colorFilter = ColorFilter.tint(ModeColor.forLine("U2", null)),
             modifier = Modifier.size(26.dp),
         )
         Spacer(Modifier.height(5.dp))

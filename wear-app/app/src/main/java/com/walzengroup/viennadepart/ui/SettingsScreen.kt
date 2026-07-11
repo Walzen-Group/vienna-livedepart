@@ -1,14 +1,17 @@
 package com.walzengroup.viennadepart.ui
 
 import android.text.format.DateUtils
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,6 +21,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,9 +39,12 @@ import com.walzengroup.viennadepart.data.TransitData
 import com.walzengroup.viennadepart.ui.common.MutedText
 import kotlinx.coroutines.launch
 
+private val CardSurface = Color(0xFF1B1B21)
+private val CardValue = Color(0xFFE8E8EA)
+
 /**
- * Settings home page (a slide next to Search). For now: refresh the bundled
- * stop/route data from the OGD server so the app needn't ship an update for it.
+ * Settings home page (a slide next to Search): choose where the app opens, and keep the
+ * bundled stop/route data current from the OGD server + GitHub without shipping an update.
  */
 @Composable
 fun SettingsPage() {
@@ -53,19 +61,51 @@ fun SettingsPage() {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 14.dp, vertical = 24.dp),
+            .padding(horizontal = 16.dp, vertical = 26.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text("Settings", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-        Spacer(Modifier.height(4.dp))
-        Text("Transit data", color = MutedText, fontSize = 11.sp)
-        Text("Stops: ${stopsDate ?: "bundled"}", color = MutedText, fontSize = 10.sp)
-        Text("Routes: ${routesDate ?: "bundled"}", color = MutedText, fontSize = 10.sp)
-        val label = updatedAt?.let { "Downloaded ${DateUtils.getRelativeTimeSpanString(it)}" }
-            ?: "Not downloaded yet"
-        Text(label, color = MutedText, fontSize = 10.sp, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(12.dp))
+
+        ToggleChip(
+            checked = openToFavorites,
+            onCheckedChange = {
+                openToFavorites = it
+                AppSettings.setOpenToFavorites(context, it)
+            },
+            label = { Text(if (openToFavorites) "Open to favorites" else "Open to home", fontSize = 13.sp) },
+            toggleControl = {
+                Icon(
+                    imageVector = ToggleChipDefaults.switchIcon(checked = openToFavorites),
+                    contentDescription = if (openToFavorites) "On" else "Off",
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(Modifier.height(14.dp))
+
+        // Transit data card
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .background(CardSurface)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+        ) {
+            Text("Transit data", fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+            Spacer(Modifier.height(7.dp))
+            InfoRow("Stops", stopsDate ?: "bundled")
+            InfoRow("Routes", routesDate ?: "bundled")
+            InfoRow(
+                "Updated",
+                updatedAt?.let { DateUtils.getRelativeTimeSpanString(it).toString() } ?: "never",
+            )
+        }
+
         Spacer(Modifier.height(8.dp))
+
         Chip(
             onClick = {
                 if (updating) return@Chip
@@ -92,24 +132,18 @@ fun SettingsPage() {
             Spacer(Modifier.height(4.dp))
             Text(s, color = MutedText, fontSize = 11.sp, textAlign = TextAlign.Center)
         }
+    }
+}
 
-        Spacer(Modifier.height(14.dp))
-        Text("Startup", color = MutedText, fontSize = 11.sp)
-        Spacer(Modifier.height(4.dp))
-        ToggleChip(
-            checked = openToFavorites,
-            onCheckedChange = {
-                openToFavorites = it
-                AppSettings.setOpenToFavorites(context, it)
-            },
-            label = { Text(if (openToFavorites) "Open to favorites" else "Open to home", fontSize = 13.sp) },
-            toggleControl = {
-                Icon(
-                    imageVector = ToggleChipDefaults.switchIcon(checked = openToFavorites),
-                    contentDescription = if (openToFavorites) "On" else "Off",
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
+/** One label/value line inside the transit-data card. */
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, color = MutedText, fontSize = 11.sp)
+        Text(value, color = CardValue, fontSize = 11.sp, fontWeight = FontWeight.Medium)
     }
 }

@@ -1,11 +1,13 @@
 package com.walzengroup.viennadepart.ui.common
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
+import androidx.wear.compose.material.CompactChip
 import androidx.wear.compose.material.Text
 import kotlin.math.roundToInt
 
@@ -128,3 +131,23 @@ fun SquareBadge(line: String, color: Color, size: Int = 22) {
 
 fun formatDistance(meters: Float): String =
     if (meters < 1000) "${meters.roundToInt()} m" else String.format("%.1f km", meters / 1000)
+
+private val ClearBg = Color(0xFFCFD2EE)
+private val ClearText = Color(0xFF5B5B66)
+
+/** The native Material "Clear all" pill (same CompactChip the system uses for notifications). */
+@Composable
+fun ClearAllButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        CompactChip(
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(0.42f),
+            colors = ChipDefaults.chipColors(backgroundColor = ClearBg, contentColor = ClearText),
+            label = {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text("Clear all", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                }
+            },
+        )
+    }
+}

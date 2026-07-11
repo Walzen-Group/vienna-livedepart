@@ -80,19 +80,25 @@ session.
   `MonitorCache`), `RouteRepository.kt` (bundled `linien.csv` +
   `fahrwegverlaeufe.csv` → line→ordered-stop chain **matched to the live termini**,
   and `nearestStopOnLine`), `TransitData.kt` (filesDir-preferred loading +
-  validated download/refresh + cache invalidation), `LastConnection.kt`,
+  validated download/refresh + cache invalidation), `RecentStops.kt` (recently
+  opened stations + the last line ridden there; deduped by DIVA, most-recent-first,
+  capped at 10 — replaces the old single `LastConnection`),
   `SearchHistory.kt`, `Favorites.kt`, `AppSettings.kt`, `UiModels.kt`.
 - **UI:** `HomeScreen.kt` (4-page `HorizontalPager`: Favorites · Nearby · Search ·
-  Settings; Nearby = split Locate/recent pill; Search = text+voice + fuzzy +
-  history; Favorites list + gold star/gradient), `DeparturesScreen.kt`
+  Settings; Nearby = split Locate + two most-recent stations pill centered on the
+  first screenful, older recents scroll below under a "Recent" header with a docked
+  "Clear all" pill at the end; Search = text+voice (U2-tinted magnifier) + fuzzy +
+  history + docked "Clear all"; Favorites list + gold star/gradient), `DeparturesScreen.kt`
   (swipe=direction tabs+`HorizontalPager`, **crown = vertical station
   `VerticalPager`**, bottom star, boarding ✳, mode-color gradient),
-  `SettingsScreen.kt` (SettingsPage: update transit data + open-to toggle),
+  `SettingsScreen.kt` (SettingsPage: open-to toggle + a transit-data card showing
+  each CSV's date and last-download time + refresh button),
   `NearbyScreen.kt`, `StopLinesScreen.kt`, `FavoriteOpenScreen.kt`,
   `ui/common/Ui.kt` (`Loadable` with `loadingLabel`/`refreshMs`/`key`),
   `ui/theme/ModeColor.kt` (`forLine` + `modeName`).
-- **AppViewModel.kt** — holds selection + hoists `searchHistory` and `favorites`
-  (so they survive home page swipes) via `ensureLoaded`.
+- **AppViewModel.kt** — holds selection + hoists `searchHistory`, `favorites`, and
+  `recentStops` (so they survive home page swipes) via `ensureLoaded`. Opening a
+  station's departures calls `addRecent` (once per stop view, not per 30s refresh).
 - **assets:** `haltepunkte.csv`, `linien.csv`, `fahrwegverlaeufe.csv`.
   **res/drawable:** `ic_pin`, `ic_search`, `ic_star`, `ic_refresh`.
 
@@ -131,6 +137,13 @@ session.
   Kurzführung") and short-work overshoot (44 → Winckelmannstraße).
 - **Home** = Favorites · Nearby · Search · Settings (Settings is a 4th slide, not
   a nav screen). Settings has an **"Open to favorites / Open to home"** toggle.
+- **Recent stations** replace the old single last-connection. Nearby shows the two
+  newest as the split pill's right half, the rest as chips below; tapping any recent
+  reopens departures on the line last ridden there. **"Clear all" is docked in the
+  scrolling list, never a floating overlay** (matches the favorite-star rule). It is
+  the shared `ClearAllButton` (`CompactChip`) on both Nearby and Search. The Search
+  list sets `scalingParams(edgeScale = 1f)` so the bottom-edge item isn't shrunk by
+  the SLC fisheye, keeping it the same physical size as on Nearby.
 - Departures: swipe = direction; same-direction platforms stack (single platform
   skips the header and is centered + non-scrollable). **No H/R in the group
   header** (the tabs already say the direction).

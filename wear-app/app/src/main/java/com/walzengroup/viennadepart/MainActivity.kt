@@ -8,13 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
-import com.walzengroup.viennadepart.data.LastConnectionStore
 import com.walzengroup.viennadepart.data.TransitRefreshWorker
 import com.walzengroup.viennadepart.tile.EXTRA_FAVORITE_LINE
 import com.walzengroup.viennadepart.ui.DeparturesScreen
@@ -81,14 +79,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("lines") {
-                        val context = LocalContext.current
                         val stop = app.selectedStop
                         if (stop == null) {
                             PopBack(nav)
                         } else {
-                            StopLinesScreen(stop, onSelect = { line, type ->
+                            StopLinesScreen(stop, onSelect = { line, _ ->
                                 app.selectedLine = line
-                                LastConnectionStore.save(context, stop, line, type)
                                 nav.navigate("departures")
                             })
                         }

@@ -215,6 +215,11 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                                         key = pageStop.diva,
                                     ) { ui ->
                                         LaunchedEffect(ui.lineType) { lineType = ui.lineType }
+                                        // Opening a station's departures records it as recent
+                                        // (once per stop view, not on every 30s refresh).
+                                        LaunchedEffect(pageStop.diva, ui.lineType) {
+                                            app.addRecent(context, pageStop, line, ui.lineType)
+                                        }
                                         val termini = ui.directions.map { it.label }
                                         LaunchedEffect(termini) {
                                             if (chain.isEmpty() && termini.isNotEmpty()) {
