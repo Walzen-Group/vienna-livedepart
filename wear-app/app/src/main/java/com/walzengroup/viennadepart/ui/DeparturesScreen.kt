@@ -5,8 +5,11 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -18,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,17 +48,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.wear.compose.material.PositionIndicator
@@ -100,23 +114,15 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
     key(stops) {
         val startIndex = stops.indexOfFirst { it.diva == stop.diva }.coerceAtLeast(0)
         val pagerState = rememberPagerState(initialPage = startIndex, pageCount = { stops.size })
-        val focusRequester = rememberActiveFocusRequester()
         var acc by remember { mutableFloatStateOf(0f) }
-        var targetPage by remember { mutableIntStateOf(startIndex) }
+        // Index (register) mode: crowning opens a route-strip chooser of the whole line; the
+        // opened stop is remembered so a cancel returns to it.
+        var indexMode by remember { mutableStateOf(false) }
+        var highlight by remember { mutableIntStateOf(startIndex) }
+        var indexReturnPage by remember { mutableIntStateOf(startIndex) }
         // Stops the user has opened, hoisted above the pager so a loaded stop stays loaded
         // when the page scrolls out of composition and back. The opened stop starts loaded.
         val loaded = remember { mutableStateListOf(stops[startIndex].diva) }
-        // Slide one step at a time, but snap when the crown jumps several stops at once so
-        // fast crowning never falls behind and stalls. LaunchedEffect(targetPage) cancels an
-        // in-flight slide when the next detent arrives, so a multi-stop jump lands as a snap.
-        LaunchedEffect(targetPage) {
-            val current = pagerState.currentPage
-            when {
-                targetPage == current -> {}
-                kotlin.math.abs(targetPage - current) > 1 -> pagerState.scrollToPage(targetPage)
-                else -> pagerState.animateScrollToPage(targetPage, animationSpec = tween(durationMillis = 420))
-            }
-        }
         // Chrome (background, header, star, position indicator) is persistent and lives
         // ABOVE the pager, so crowning between stops slides only the departures body over
         // a single fixed sheet — and no nested Scaffold steals the crown's focus.
@@ -125,9 +131,9 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
 
         // Curved rotary position tracker that hugs the bezel (native Wear indicator).
         val stopIndicator = remember(stops.size) { StopIndicatorState(stops.size) }
-        stopIndicator.current = pagerState.currentPage.coerceIn(0, stops.lastIndex)
+        stopIndicator.current = (if (indexMode) highlight else pagerState.currentPage).coerceIn(0, stops.lastIndex)
         Scaffold(
-            timeText = { TimeText() },
+            timeText = { if (!indexMode) TimeText() },
             positionIndicator = {
                 if (stops.size > 1) {
                     PositionIndicator(
@@ -140,7 +146,26 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
             },
         ) {
             Box(Modifier.fillMaxSize().background(ground)) {
-                Column(
+                if (indexMode) {
+                    IndexView(
+                        stops = stops,
+                        highlight = highlight,
+                        lineColor = lineColor,
+                        line = line,
+                        onHighlight = { highlight = it.coerceIn(0, stops.lastIndex) },
+                        onSelect = { idx ->
+                            if (stops[idx].diva !in loaded) loaded.add(stops[idx].diva)
+                            pagerState.requestScrollToPage(idx)
+                            indexMode = false
+                        },
+                        onCancel = {
+                            pagerState.requestScrollToPage(indexReturnPage)
+                            indexMode = false
+                        },
+                    )
+                } else {
+                    val focusRequester = rememberActiveFocusRequester()
+                    Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -151,12 +176,17 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
-                            // The crown steps between stops (a detent slides to the neighbour).
+                            // Any crown opens the index chooser (one detent of travel), which is
+                            // the way to move between stops now.
                             .onRotaryScrollEvent { e ->
                                 acc += e.verticalScrollPixels
                                 val threshold = 60f
-                                while (acc >= threshold) { targetPage = (targetPage + 1).coerceAtMost(stops.lastIndex); acc -= threshold }
-                                while (acc <= -threshold) { targetPage = (targetPage - 1).coerceAtLeast(0); acc += threshold }
+                                if ((acc >= threshold || acc <= -threshold) && stops.size > 1) {
+                                    highlight = pagerState.currentPage.coerceIn(0, stops.lastIndex)
+                                    indexReturnPage = highlight
+                                    indexMode = true
+                                    acc = 0f
+                                }
                                 true
                             }
                             .focusRequester(focusRequester)
@@ -199,8 +229,130 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                             }
                         }
                     }
+                    }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Route-strip index of the whole line: a mode-colour line bowed to the round screen, a
+ * white dot per stop, station names (two lines) to the right, the highlighted stop centred.
+ * Crown moves the highlight, a tap selects it, a horizontal swipe cancels.
+ */
+@OptIn(ExperimentalWearFoundationApi::class)
+@Composable
+private fun IndexView(
+    stops: List<PhysicalStop>,
+    highlight: Int,
+    lineColor: Color,
+    line: String,
+    onHighlight: (Int) -> Unit,
+    onSelect: (Int) -> Unit,
+    onCancel: () -> Unit,
+) {
+    val focusRequester = rememberActiveFocusRequester()
+    var acc by remember { mutableFloatStateOf(0f) }
+    val density = LocalDensity.current
+
+    var hPx by remember { mutableFloatStateOf(0f) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .onSizeChanged { hPx = it.height.toFloat() }
+            .onRotaryScrollEvent { e ->
+                acc += e.verticalScrollPixels
+                val threshold = 60f
+                var h = highlight
+                while (acc >= threshold) { h = (h + 1).coerceIn(0, stops.lastIndex); acc -= threshold }
+                while (acc <= -threshold) { h = (h - 1).coerceIn(0, stops.lastIndex); acc += threshold }
+                if (h != highlight) onHighlight(h)
+                true
+            }
+            .focusRequester(focusRequester)
+            .focusable()
+            .pointerInput(Unit) { detectTapGestures { onSelect(highlight) } }
+            .pointerInput(Unit) {
+                var total = 0f
+                var fired = false
+                detectHorizontalDragGestures(
+                    onDragStart = { total = 0f; fired = false },
+                    onHorizontalDrag = { _, d ->
+                        total += d
+                        if (!fired && kotlin.math.abs(total) > 40.dp.toPx()) { fired = true; onCancel() }
+                    },
+                )
+            },
+    ) {
+        if (hPx <= 0f) return@Box // not measured yet (first frame)
+        val centerY = hPx / 2f
+        val half = hPx / 2f
+        val spacing = with(density) { 46.dp.toPx() }
+        val leftBase = with(density) { 30.dp.toPx() }
+        val curveK = with(density) { 44.dp.toPx() } // how far the line bows in near the edges
+        val nameGap = with(density) { 14.dp.toPx() }
+        val rowH = with(density) { 42.dp.toPx() }
+
+        fun yOf(i: Int) = centerY + (i - highlight) * spacing
+        // Bow the strip: points further from centre inset toward centre (a parabola in y), so
+        // the line arcs with the round bezel instead of clipping at the top/bottom corners.
+        fun xAtY(y: Float): Float {
+            val t = (y - centerY) / half
+            return leftBase + curveK * t * t
+        }
+        fun xOf(i: Int) = xAtY(yOf(i))
+        // One extra stop past each edge keeps the line running to the screen edges.
+        val visible = stops.indices.filter { yOf(it) in -spacing..(hPx + spacing) }
+
+        Canvas(Modifier.fillMaxSize()) {
+            // Sample the parabola in small steps so the line is a smooth curve, not a polyline
+            // between far-apart dots, and always spans the full screen height.
+            val path = Path()
+            path.moveTo(xAtY(0f), 0f)
+            var yy = 0f
+            while (yy <= hPx) { path.lineTo(xAtY(yy), yy); yy += 6f }
+            path.lineTo(xAtY(hPx), hPx)
+            drawPath(path, color = lineColor, style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            visible.forEach { i ->
+                val c = Offset(xOf(i), yOf(i))
+                if (i == highlight) {
+                    drawCircle(color = lineColor, radius = 10.dp.toPx(), center = c)
+                    drawCircle(color = Color.White, radius = 6.dp.toPx(), center = c)
+                } else {
+                    drawCircle(color = Color.White, radius = 4.dp.toPx(), center = c)
+                }
+            }
+        }
+
+        visible.forEach { i ->
+            val x = xOf(i)
+            val y = yOf(i)
+            val dist = kotlin.math.abs(i - highlight)
+            val nameColor =
+                if (i == highlight) Color.White
+                else MutedText.copy(alpha = (1f - dist * 0.2f).coerceIn(0.3f, 1f))
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset((x + nameGap).roundToInt(), (y - rowH / 2f).roundToInt()) }
+                    .width(150.dp)
+                    .height(42.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Text(
+                    stops[i].name,
+                    color = nameColor,
+                    fontSize = if (i == highlight) 14.sp else 12.sp,
+                    fontWeight = if (i == highlight) FontWeight.SemiBold else FontWeight.Normal,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 15.sp,
+                )
+            }
+        }
+
+        Box(Modifier.fillMaxWidth().padding(top = 8.dp), contentAlignment = Alignment.TopCenter) {
+            SquareBadge(line, lineColor, size = 20)
         }
     }
 }
@@ -474,33 +626,46 @@ private fun GroupHeader(group: PlatformGroup) {
 
 @Composable
 private fun DepartureRow(dep: DepartureUi, lineColor: Color) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 23.dp, vertical = 1.dp) // inset the pills; headers stay full width
+            .padding(horizontal = 20.dp, vertical = 1.dp) // inset the pills; headers stay full width
             .clip(RoundedCornerShape(14.dp))
             .background(RowSurface)
-            .padding(horizontal = 16.dp, vertical = 4.dp), // matches the design draft (.dep 4px 13px)
+            .padding(horizontal = 12.dp, vertical = 4.dp), // matches the design draft (.dep 4px 13px)
     ) {
-        // Fixed-height leading slot so the "boarding" row is exactly as tall as a
-        // normal "N min" row (the vector stars are shorter than the number text).
-        Box(Modifier.height(24.dp), contentAlignment = Alignment.CenterStart) {
-            if (dep.countdown <= 0) {
-                // At the platform now: the Wiener Linien blink, two asterisks
-                // trading places, instead of "0 min".
-                BoardingStars(lerp(lineColor, Color.White, 0.4f))
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("${dep.countdown}", fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                    Text(" min", color = MutedText, fontSize = 10.sp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Fixed-height leading slot so the "boarding" row is exactly as tall as a
+            // normal "N min" row (the vector stars are shorter than the number text).
+            Box(Modifier.height(24.dp), contentAlignment = Alignment.CenterStart) {
+                if (dep.countdown <= 0) {
+                    // At the platform now: the Wiener Linien blink, two asterisks
+                    // trading places, instead of "0 min".
+                    BoardingStars(lerp(lineColor, Color.White, 0.4f))
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("${dep.countdown}", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        Text(" min", color = MutedText, fontSize = 10.sp)
+                    }
                 }
             }
+            Spacer(Modifier.weight(1f))
+            if (dep.barrierFree) Glyph("♿", Color(0xFFCFD3D6))
+            if (dep.cooling) Glyph("❄️", Color(0xFF2F9BD8))
+            if (dep.trafficjam) Glyph("⚠️", Color(0xFFF0A020))
         }
-        Spacer(Modifier.weight(1f))
-        if (dep.barrierFree) Glyph("♿", Color(0xFFCFD3D6))
-        if (dep.cooling) Glyph("❄️", Color(0xFF2F9BD8))
-        if (dep.trafficjam) Glyph("⚠️", Color(0xFFF0A020))
+        // Wall-clock departure time at the card's true horizontal center (overlaid so the
+        // leading countdown and trailing glyphs don't shift it off-centre).
+        Text(
+            dep.time,
+            color = MutedText,
+            fontSize = 10.sp,
+            maxLines = 1,
+            modifier = Modifier.align(Alignment.Center),
+        )
     }
 }
 

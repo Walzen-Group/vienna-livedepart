@@ -1,6 +1,9 @@
 package com.walzengroup.viennadepart.data
 
 import com.walzengroup.viennadepart.data.stops.PhysicalStop
+import java.time.LocalTime
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * Live departures for a chosen stop, built from one monitor call over the stop's
@@ -9,6 +12,10 @@ import com.walzengroup.viennadepart.data.stops.PhysicalStop
  *   - [departuresForLine]: the next departures for one line, grouped by platform.
  */
 class DeparturesRepository {
+
+    private companion object {
+        val CLOCK: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+    }
 
     /** Distinct lines currently at the stop, each with its destinations. */
     suspend fun linesAtStop(stop: PhysicalStop): List<LineOption> {
@@ -50,6 +57,10 @@ class DeparturesRepository {
                         if (lineType == null) lineType = v?.type
                         DepartureUi(
                             countdown = d.departureTime.countdown,
+                            time = departureClock(
+                                d.departureTime.timeReal ?: d.departureTime.timePlanned,
+                                d.departureTime.countdown,
+                            ),
                             cooling = v?.cooling == true,
                             barrierFree = v?.barrierFree == true,
                             trafficjam = v?.trafficjam == true,
@@ -83,6 +94,16 @@ class DeparturesRepository {
             .sortedBy { directionOrder(it.direction) }
 
         return DeparturesUi(stop.name, line, lineType, pages)
+    }
+
+    // Wall-clock departure time as "HH:mm", from the API's ISO timestamp when present,
+    // else derived from the countdown against the current time.
+    private fun departureClock(iso: String?, countdownMin: Int): String = try {
+        val t = if (iso != null) OffsetDateTime.parse(iso).toLocalTime()
+        else LocalTime.now().plusMinutes(countdownMin.toLong())
+        t.format(CLOCK)
+    } catch (e: Exception) {
+        LocalTime.now().plusMinutes(countdownMin.toLong()).format(CLOCK)
     }
 
     // Sort trams/buses by number; U-Bahn and letter lines fall to the end.

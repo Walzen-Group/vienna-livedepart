@@ -41,6 +41,7 @@ data class PlatformGroup(
 
 data class DepartureUi(
     val countdown: Int,
+    val time: String, // wall-clock departure time, "HH:mm"
     val cooling: Boolean,
     val barrierFree: Boolean,
     val trafficjam: Boolean,

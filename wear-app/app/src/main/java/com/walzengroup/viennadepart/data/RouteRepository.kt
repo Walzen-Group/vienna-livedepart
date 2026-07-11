@@ -79,20 +79,28 @@ object RouteRepository {
             val byPattern = rows.groupBy { it.direction + "|" + it.pattern }
             val termNorms = termini.map { normalize(it) }.filter { it.isNotBlank() }
 
-            // Pick the longest pattern whose terminus matches a live destination.
-            var best: List<Seq>? = null
+            fun matchesTerm(n: String) = termNorms.any { it.contains(n) || n.contains(it) }
+
+            // Prefer the longest pattern whose BOTH ends are live termini — the real
+            // end-to-end service. Matching only the terminus lets a rare long variant win
+            // because its end happens to match (e.g. 44's 24-stop Winckelmannstraße →
+            // Schottentor ends at a live terminus but starts off today's route), dragging
+            // the far end out. Fall back to a terminus-only match, then longest overall.
+            var bothEnds: List<Seq>? = null
+            var oneEnd: List<Seq>? = null
             for ((_, seqs) in byPattern) {
                 val ordered = seqs.sortedBy { it.order }
-                val lastStop = StopRepository.stopForRbl(context, ordered.last().rbl) ?: continue
-                val lastName = normalize(lastStop.name)
-                val matches = termNorms.any { it.contains(lastName) || lastName.contains(it) }
-                if (matches) {
-                    val b = best
-                    if (b == null || ordered.size > b.size) best = ordered
+                val firstName = StopRepository.stopForRbl(context, ordered.first().rbl)?.name?.let { normalize(it) } ?: continue
+                val lastName = StopRepository.stopForRbl(context, ordered.last().rbl)?.name?.let { normalize(it) } ?: continue
+                when {
+                    matchesTerm(firstName) && matchesTerm(lastName) ->
+                        if (bothEnds == null || ordered.size > bothEnds.size) bothEnds = ordered
+                    matchesTerm(lastName) ->
+                        if (oneEnd == null || ordered.size > oneEnd.size) oneEnd = ordered
                 }
             }
-            // Fallback if nothing matched: the longest pattern overall.
-            val chosen = best ?: byPattern.values.maxByOrNull { it.size }?.sortedBy { it.order }.orEmpty()
+            val chosen = bothEnds ?: oneEnd
+                ?: byPattern.values.maxByOrNull { it.size }?.sortedBy { it.order }.orEmpty()
 
             val out = ArrayList<PhysicalStop>()
             var lastDiva: String? = null
