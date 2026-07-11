@@ -1,34 +1,38 @@
-# Phase 1 — bare Wear OS app
+# Vienna Departures — Wear OS app
 
-A minimal Compose for Wear OS app that fetches **one hardcoded stop + line**
-(Stephansplatz, line U1) from the Wiener Linien real-time API and shows the next
-departures, live, themed by the line's mode color. A central U-Bahn line is used
-so there are departures at most hours; a daytime tram is often empty at night.
+A Compose for Wear OS app for live Wiener Linien departures. It uses your
+location to find the nearest stops, lets you pick a line, and shows the next
+departures — themed by the line's mode color, with air-conditioning / step-free /
+congestion glyphs.
 
-This phase is about learning the toolchain — project structure, the emulator,
-then a real watch — so the scope is deliberately small: no location, no search,
-no favorites, no swipe/crown navigation. Those come in Phase 2 and 3 (see
-`docs/superpowers/specs/2026-07-11-wearos-vienna-departures-design.md`).
-
-The project compiles to a debug APK with no manual setup beyond the Android SDK.
+**Phase 1** (done) proved the toolchain with one hardcoded stop. **Phase 2**
+(current) adds the real flow: **Nearby → pick a line → departures**, driven by
+GPS and the bundled stop reference. Still to come in Phase 3: favorites, the
+tile, and the swipe-direction / crown-scroll polish on the departures screen. See
+`docs/superpowers/specs/2026-07-11-wearos-vienna-departures-design.md`.
 
 ## What you'll see
 
-A round-screen list on a deep tram-red ground:
+1. **Nearby** — a list of the closest stops with distances (asks for location
+   permission the first time).
+2. Tap a stop → **pick a line** — each line with its two termini and a mode-color
+   badge.
+3. Tap a line → **departures** — both directions, on a deep mode-color ground.
+   When a direction runs from two platforms, each is grouped with its compass +
+   RBL:
 
 ```
         U1 · Stephansplatz
    → Leopoldau          H
-   [ 15 min ]
-   [ 30 min ]
+   [ 15 min ]  [ 30 min ]
    → Oberlaa            R
-   [ 11 min ]
-   [ 25 min ]
+   [ 11 min  ❄️ ]  [ 25 min  ♿ ]
 ```
 
 Each departure shows the countdown in minutes and, when the feed reports them,
 glyphs for air conditioning (❄️ `vehicle.cooling`), step-free access
 (♿ `vehicle.barrierFree`), and congestion on approach (⚠️ `vehicle.trafficjam`).
+Swipe from the left edge to go back.
 
 ## Prerequisites
 
@@ -53,13 +57,16 @@ Nothing else — no API key, the Wiener Linien data is open.
    (e.g. "Wear OS Small Round") and a recent system image (API 34+). Download the
    image if needed.
 2. Start the emulator.
-3. Make sure the emulator has internet (the app needs it to reach the API — the
-   Wear emulator normally has network through the host).
-4. Pick the `app` run configuration and press **Run** (▶). The app installs and
-   launches.
+3. **Set a location in Vienna** so "Nearby" has something to find: emulator
+   window → **`...` (Extended controls) → Location**, enter a Vienna point (e.g.
+   lat `48.2088`, lon `16.3726` for Stephansplatz) and click **Send / Set
+   location**. Without this the emulator has no GPS fix and Nearby shows an error.
+4. Make sure the emulator has internet (the Wear emulator normally has network
+   through the host).
+5. Pick the `app` run configuration and press **Run** (▶). Grant the location
+   permission when asked.
 
-You should see live line-44 departures for Frauengasse. Times change if you
-reload (the app fetches on open).
+You should land on a list of nearby stops; tap through to live departures.
 
 ## Run on a real watch (optional)
 
@@ -84,17 +91,25 @@ The APK lands in `app/build/outputs/apk/debug/`.
 ```
 wear-app/
   app/src/main/
-    AndroidManifest.xml                 standalone Wear app, INTERNET permission
+    AndroidManifest.xml                 standalone Wear app, INTERNET + location
+    assets/haltepunkte.csv              bundled stop reference (cp1252)
     java/com/walzengroup/viennadepart/
-      MainActivity.kt                   sets the Compose content
-      DeparturesViewModel.kt            Loading / Success / Error state
+      MainActivity.kt                   SwipeDismissableNavHost: nearby → lines → departures
+      AppViewModel.kt                   holds the current stop + line selection
       data/
         MonitorModels.kt                @Serializable mirror of the API JSON
         WienerLinienApi.kt              the monitor GET, no key
-        DeparturesRepository.kt         maps the response to the UI model (Phase-1 hardcoded RBLs)
-        UiModels.kt                     what the screen renders
+        DeparturesRepository.kt         lines at a stop, and departures per line (platform-grouped)
+        UiModels.kt                     LineOption / DeparturesUi / PlatformGroup
+        stops/
+          StopModels.kt                 PhysicalStop / Platform / StopDistance
+          StopRepository.kt             loads the CSV, DIVA grouping, nearest / search, compass
+      location/LocationProvider.kt      fused current-location + permission check
       ui/
-        DeparturesScreen.kt             the round-screen departures list
+        NearbyScreen.kt                 GPS → nearest stops list
+        StopLinesScreen.kt              lines at a stop (two termini, square badge)
+        DeparturesScreen.kt             departures, both directions, platform-grouped
+        common/Ui.kt                    Loadable / error / badge / glyph helpers
         theme/ModeColor.kt              transport color mapping (U-Bahn / vehicle.type)
         theme/Theme.kt                  Wear MaterialTheme
     res/                                launcher icon, strings, theme
@@ -103,8 +118,12 @@ wear-app/
 
 ## Notes and known bits
 
-- **Hardcoded stop**: `DeparturesRepository` fixes Stephansplatz line U1 (RBLs
-  4111 and 4118). Phase 2 replaces this with GPS + the bundled stop CSV.
+- **Nearest stop** uses the fused location provider plus the bundled
+  `haltepunkte.csv` (grouped by DIVA into physical stops). Lines at a stop and
+  their departures come from one live monitor call over the stop's RBLs.
+- **Not yet**: the home pager (Favorites / Nearby / Search), text/voice search,
+  swipe-to-change-direction, and crown-scroll to farther stops — those are the
+  rest of Phase 2/3.
 - **Material**: built on Wear Compose Material (the stable 1.4 line). The spec
   targets Material 3 (`androidx.wear.compose:compose-material3`); that's a later
   swap once the components we need are confirmed stable.

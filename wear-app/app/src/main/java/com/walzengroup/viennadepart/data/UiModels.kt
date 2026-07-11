@@ -1,17 +1,31 @@
 package com.walzengroup.viennadepart.data
 
-/** What the departures screen renders, mapped from the raw monitor response. */
+/** A line available at a stop, with its distinct destinations (both directions). */
+data class LineOption(
+    val name: String,
+    val type: String?, // vehicle.type, drives the mode color
+    val termini: List<String>,
+)
+
+/** Everything the departures screen renders for one stop + line. */
 data class DeparturesUi(
     val stopName: String,
     val line: String,
-    val lineType: String?, // vehicle.type, drives the mode color
-    val groups: List<DirectionGroup>,
+    val lineType: String?,
+    val platforms: List<PlatformGroup>,
 )
 
-/** One line + destination + direction, with its next departures. */
-data class DirectionGroup(
+/**
+ * One platform's departures for the line. `showPlatformLabel` is true when the
+ * direction is served by more than one platform, so the compass + RBL are worth
+ * showing to tell them apart.
+ */
+data class PlatformGroup(
     val towards: String,
     val direction: String, // "H" / "R"
+    val compass: String,
+    val rbl: Int,
+    val showPlatformLabel: Boolean,
     val departures: List<DepartureUi>,
 )
 
