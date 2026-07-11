@@ -5,9 +5,11 @@ import android.content.Intent
 import android.view.inputmethod.EditorInfo
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,6 +77,7 @@ import com.walzengroup.viennadepart.data.RecentStop
 import com.walzengroup.viennadepart.data.stops.PhysicalStop
 import com.walzengroup.viennadepart.data.stops.StopRepository
 import com.walzengroup.viennadepart.ui.common.ClearAllButton
+import com.walzengroup.viennadepart.ui.common.ConfirmDeleteOverlay
 import com.walzengroup.viennadepart.ui.common.MutedText
 import com.walzengroup.viennadepart.ui.common.SquareBadge
 import com.walzengroup.viennadepart.ui.theme.ModeColor
@@ -157,6 +160,8 @@ private fun NearbyPage(
     val density = LocalDensity.current
     var hPx by remember { mutableFloatStateOf(0f) }
     val scrollState = rememberScrollState()
+    // Long-press a recent (pill blob or chip) to bring up the remove confirm.
+    var pendingDelete by remember { mutableStateOf<RecentStop?>(null) }
     Box(Modifier.fillMaxSize().onSizeChanged { hPx = it.height.toFloat() }) {
         if (hPx > 0f) {
             val pillH = with(density) { (hPx * 0.58f).toDp() }
@@ -170,7 +175,11 @@ private fun NearbyPage(
                     modifier = Modifier.fillMaxWidth().height(pillH),
                     contentAlignment = Alignment.Center,
                 ) {
-                    SplitPill(onLocate, recents.take(2), openRecent, Modifier.fillMaxWidth(0.92f).fillMaxHeight())
+                    SplitPill(
+                        onLocate, recents.take(2), openRecent,
+                        onLongPress = { pendingDelete = it },
+                        modifier = Modifier.fillMaxWidth(0.92f).fillMaxHeight(),
+                    )
                 }
                 if (recents.size > 2) {
                     // top gap = bottom gap (4 here + the first chip's own 6dp top padding)
@@ -178,11 +187,10 @@ private fun NearbyPage(
                         modifier = Modifier.padding(top = 10.dp, bottom = 4.dp))
                 }
                 recents.drop(2).forEach { r ->
-                    Chip(
-                        onClick = { openRecent(r) },
-                        icon = { SquareBadge(r.line, ModeColor.forLine(r.line, r.type), size = 26) },
-                        label = { Text(r.name, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        colors = ChipDefaults.secondaryChipColors(),
+                    RecentChip(
+                        line = r.line, type = r.type, name = r.name,
+                        onOpen = { openRecent(r) },
+                        onLongPress = { pendingDelete = r },
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
                     )
                 }
@@ -190,6 +198,13 @@ private fun NearbyPage(
                 ClearAllButton(onClick = { app.clearRecents(context) })
                 Spacer(Modifier.height(8.dp))
             }
+        }
+        pendingDelete?.let { r ->
+            ConfirmDeleteOverlay(
+                name = r.name,
+                onConfirm = { app.removeRecent(context, r.diva); pendingDelete = null },
+                onCancel = { pendingDelete = null },
+            )
         }
     }
 }
@@ -201,6 +216,7 @@ private fun SplitPill(
     recents: List<RecentStop>,
     onOpen: (RecentStop) -> Unit,
     modifier: Modifier = Modifier,
+    onLongPress: (RecentStop) -> Unit = {},
 ) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         PillHalf(
@@ -228,17 +244,20 @@ private fun SplitPill(
                 )
                 1 -> RecentBlob(
                     shape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp, topEnd = 40.dp, bottomEnd = 40.dp),
-                    recent = recents[0], big = true, onOpen = { onOpen(recents[0]) }, modifier = Modifier.fillMaxSize(),
+                    recent = recents[0], big = true, onOpen = { onOpen(recents[0]) },
+                    onLongPress = { onLongPress(recents[0]) }, modifier = Modifier.fillMaxSize(),
                 )
                 else -> {
                     RecentBlob(
                         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 40.dp, bottomStart = 6.dp, bottomEnd = 6.dp),
                         recent = recents[0], big = false, onOpen = { onOpen(recents[0]) },
+                        onLongPress = { onLongPress(recents[0]) },
                         modifier = Modifier.fillMaxWidth().weight(1f),
                     )
                     RecentBlob(
                         shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 12.dp, bottomEnd = 40.dp),
                         recent = recents[1], big = false, onOpen = { onOpen(recents[1]) },
+                        onLongPress = { onLongPress(recents[1]) },
                         modifier = Modifier.fillMaxWidth().weight(1f),
                     )
                 }
@@ -255,8 +274,12 @@ private fun RecentBlob(
     big: Boolean,
     onOpen: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    onLongPress: (() -> Unit)? = null,
 ) {
-    PillHalf(shape = shape, onClick = onOpen, modifier = modifier, verticalPadding = if (big) 12.dp else 6.dp) {
+    PillHalf(
+        shape = shape, onClick = onOpen, onLongClick = onLongPress,
+        modifier = modifier, verticalPadding = if (big) 12.dp else 6.dp,
+    ) {
         if (recent != null) {
             SquareBadge(recent.line, ModeColor.forLine(recent.line, recent.type), size = if (big) 26 else 20)
             Spacer(Modifier.height(if (big) 6.dp else 3.dp))
@@ -276,24 +299,68 @@ private fun RecentBlob(
 }
 
 /** A section of the split pill: a rounded, optionally-clickable column of content. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PillHalf(
     shape: Shape,
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     verticalPadding: Dp = 12.dp,
+    onLongClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = modifier
             .clip(shape)
             .background(PillColor)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .then(
+                if (onClick != null) {
+                    Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
+                } else {
+                    Modifier
+                }
+            )
             .padding(horizontal = 8.dp, vertical = verticalPadding),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         content = content,
     )
+}
+
+/**
+ * A recent/history row that looks like a secondary chip but supports long-press. The Wear
+ * `Chip` has no onLongClick, so a transparent [combinedClickable] overlay sits on top and
+ * handles both tap (open) and long-press (delete); the chip below is visual only.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun RecentChip(
+    line: String?,
+    type: String?,
+    name: String,
+    onOpen: () -> Unit,
+    onLongPress: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier) {
+        Chip(
+            onClick = onOpen,
+            icon = if (line != null) {
+                { SquareBadge(line, ModeColor.forLine(line, type), size = 26) }
+            } else {
+                null
+            },
+            label = { Text(name, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            colors = ChipDefaults.secondaryChipColors(),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Box(
+            Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(50))
+                .combinedClickable(onClick = onOpen, onLongClick = onLongPress),
+        )
+    }
 }
 
 private val FavoriteGold = Color(0xFFF5C518)
@@ -331,7 +398,13 @@ private fun FavoritesPage(favorites: List<Favorite>, onOpen: (Favorite) -> Unit)
                 items(favorites, key = { it.line }) { fav ->
                     Chip(
                         onClick = { onOpen(fav) },
-                        icon = { SquareBadge(fav.line, ModeColor.forLine(fav.line, fav.type), size = 30) },
+                        // Fixed-width badge slot so the mode label starts at the same x for
+                        // every row regardless of badge width ("9" vs "44" vs "3A").
+                        icon = {
+                            Box(Modifier.width(42.dp), contentAlignment = Alignment.Center) {
+                                SquareBadge(fav.line, ModeColor.forLine(fav.line, fav.type), size = 30)
+                            }
+                        },
                         label = { Text(ModeColor.modeName(fav.line, fav.type), fontSize = 13.sp, maxLines = 1) },
                         colors = ChipDefaults.secondaryChipColors(),
                         modifier = Modifier.fillMaxWidth(),
@@ -423,6 +496,9 @@ private fun SearchPage(app: AppViewModel, onStopSelected: (PhysicalStop) -> Unit
     // results/recents; inset from the sides, and the list is padded down so the
     // clock doesn't overlap the button.
     val listState = rememberScalingLazyListState()
+    // Long-press a history row to bring up the remove confirm.
+    var pendingDelete by remember { mutableStateOf<HistoryStop?>(null) }
+    Box(Modifier.fillMaxSize()) {
     ScalingLazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
@@ -466,12 +542,10 @@ private fun SearchPage(app: AppViewModel, onStopSelected: (PhysicalStop) -> Unit
                     modifier = Modifier.padding(top = 4.dp, bottom = 1.dp))
             }
             items(history, key = { it.diva }) { h ->
-                Chip(
-                    onClick = { openHistory(h) },
-                    label = {
-                        Text(h.name, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    },
-                    colors = ChipDefaults.secondaryChipColors(),
+                RecentChip(
+                    line = null, type = null, name = h.name,
+                    onOpen = { openHistory(h) },
+                    onLongPress = { pendingDelete = h },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -483,6 +557,14 @@ private fun SearchPage(app: AppViewModel, onStopSelected: (PhysicalStop) -> Unit
                     Spacer(Modifier.height(8.dp))
                 }
             }
+        }
+    }
+        pendingDelete?.let { h ->
+            ConfirmDeleteOverlay(
+                name = h.name,
+                onConfirm = { app.removeSearch(context, h.diva); pendingDelete = null },
+                onCancel = { pendingDelete = null },
+            )
         }
     }
 }

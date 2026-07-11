@@ -48,6 +48,11 @@ class AppViewModel : ViewModel() {
         recentStops = RecentStopsStore.load(context)
     }
 
+    fun removeRecent(context: Context, diva: String) {
+        RecentStopsStore.remove(context, diva)
+        recentStops = RecentStopsStore.load(context)
+    }
+
     fun clearRecents(context: Context) {
         RecentStopsStore.clear(context)
         recentStops = emptyList()
@@ -55,6 +60,11 @@ class AppViewModel : ViewModel() {
 
     fun addSearch(context: Context, stop: PhysicalStop) {
         SearchHistoryStore.add(context, stop)
+        searchHistory = SearchHistoryStore.load(context)
+    }
+
+    fun removeSearch(context: Context, diva: String) {
+        SearchHistoryStore.remove(context, diva)
         searchHistory = SearchHistoryStore.load(context)
     }
 

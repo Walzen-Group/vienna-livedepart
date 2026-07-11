@@ -2,6 +2,7 @@ package com.walzengroup.viennadepart.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -134,6 +135,65 @@ fun formatDistance(meters: Float): String =
 
 private val ClearBg = Color(0xFFCFD2EE)
 private val ClearText = Color(0xFF5B5B66)
+
+private val DeleteRed = Color(0xFFCF4B3B)
+
+/**
+ * Full-screen confirm overlay for deleting one recent: "Remove <name>?" with a red Remove
+ * and a Cancel. Tapping the dimmed scrim also cancels. Rendered on top of the page when a
+ * long-press has selected an item.
+ */
+@Composable
+fun ConfirmDeleteOverlay(name: String, onConfirm: () -> Unit, onCancel: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xE6000000))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onCancel,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("Remove", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            Text(
+                name,
+                color = MutedText,
+                fontSize = 12.sp,
+                lineHeight = 15.sp,
+                maxLines = 2,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(12.dp))
+            Chip(
+                onClick = onConfirm,
+                label = {
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text("Remove", color = Color.White, fontWeight = FontWeight.Medium)
+                    }
+                },
+                colors = ChipDefaults.chipColors(backgroundColor = DeleteRed, contentColor = Color.White),
+                modifier = Modifier.fillMaxWidth(0.82f),
+            )
+            Spacer(Modifier.height(6.dp))
+            Chip(
+                onClick = onCancel,
+                label = {
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text("Cancel")
+                    }
+                },
+                colors = ChipDefaults.secondaryChipColors(),
+                modifier = Modifier.fillMaxWidth(0.82f),
+            )
+        }
+    }
+}
 
 /** The native Material "Clear all" pill (same CompactChip the system uses for notifications). */
 @Composable

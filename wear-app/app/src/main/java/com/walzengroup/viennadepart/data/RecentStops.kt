@@ -41,6 +41,16 @@ object RecentStopsStore {
         return runCatching { json.decodeFromString(serializer, raw) }.getOrDefault(emptyList())
     }
 
+    /** Drop one station (by DIVA) from the list. No-op if it isn't present. */
+    fun remove(context: Context, diva: String) {
+        val current = load(context).toMutableList()
+        if (current.removeAll { it.diva == diva }) {
+            prefs(context).edit()
+                .putString(KEY, json.encodeToString(serializer, current))
+                .apply()
+        }
+    }
+
     fun clear(context: Context) {
         prefs(context).edit().remove(KEY).apply()
     }
