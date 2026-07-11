@@ -23,7 +23,7 @@ object TransitData {
     // line_routes.csv is derived from GTFS by tools/build_routes.py and regenerated
     // weekly in CI; it's served from the repo's raw content.
     private const val ROUTES_URL =
-        "https://raw.githubusercontent.com/Walzen-Group/vienna-livedepart/main/wear-app/app/src/main/assets/line_routes.csv"
+        "https://raw.githubusercontent.com/Walzen-Group/vienna-livedepart/master/wear-app/app/src/main/assets/line_routes.csv"
     private val SPECS = listOf(
         Spec("haltepunkte.csv", BASE + "wienerlinien-ogd-haltepunkte.csv", "StopID;DIVA"),
         Spec("line_routes.csv", ROUTES_URL, "line;headsign"),
