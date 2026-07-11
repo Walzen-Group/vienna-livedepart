@@ -5,17 +5,21 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.wear.compose.foundation.rememberSwipeToDismissBoxState
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
+import androidx.wear.compose.navigation.rememberSwipeDismissableNavHostState
 import com.walzengroup.viennadepart.data.TransitRefreshWorker
 import com.walzengroup.viennadepart.tile.EXTRA_FAVORITE_LINE
 import com.walzengroup.viennadepart.ui.DeparturesScreen
+import com.walzengroup.viennadepart.ui.LocalSwipeToDismissState
 import com.walzengroup.viennadepart.ui.FavoriteOpenScreen
 import com.walzengroup.viennadepart.ui.HomeScreen
 import com.walzengroup.viennadepart.ui.NearbyScreen
@@ -34,6 +38,10 @@ class MainActivity : ComponentActivity() {
             ViennaTheme {
                 val nav = rememberSwipeDismissableNavController()
                 val app: AppViewModel = viewModel()
+                // One shared swipe-to-dismiss state so a nested HorizontalPager (departures
+                // directions) can route left-edge swipes to Back via edgeSwipeToDismiss.
+                val swipeToDismissState = rememberSwipeToDismissBoxState()
+                val navHostState = rememberSwipeDismissableNavHostState(swipeToDismissState)
 
                 // Tile deep-link: jump to the favorite's located departures, then clear it so the
                 // navigation fires once (and Back from departures returns Home).
@@ -45,7 +53,12 @@ class MainActivity : ComponentActivity() {
                     pendingFavorite.value = null
                 }
 
-                SwipeDismissableNavHost(navController = nav, startDestination = "home") {
+                CompositionLocalProvider(LocalSwipeToDismissState provides swipeToDismissState) {
+                SwipeDismissableNavHost(
+                    navController = nav,
+                    startDestination = "home",
+                    state = navHostState,
+                ) {
                     composable("home") {
                         HomeScreen(
                             app = app,
@@ -112,6 +125,7 @@ class MainActivity : ComponentActivity() {
                             DeparturesScreen(stop, line, app)
                         }
                     }
+                }
                 }
             }
         }

@@ -174,6 +174,13 @@ session.
   H/R. Lines have **many patterns** (depot runs, short-workings); pick by matching
   the live terminus, not by length.
 - **`am start` alone can resume a stale process** — always `am force-stop` first.
+- **Nested `HorizontalPager` eats the back-swipe.** The departures direction pager
+  consumed horizontal drags across its area, so `SwipeDismissableNavHost`'s
+  swipe-to-dismiss only fired off the pager (header/tabs, or single-direction stops).
+  Fix: share one `SwipeToDismissBoxState` (MainActivity `rememberSwipeToDismissBoxState`
+  → `rememberSwipeDismissableNavHostState` + a CompositionLocal) and apply
+  `Modifier.edgeSwipeToDismiss(state)` to the pager. Left-edge swipes now dismiss;
+  mid-screen swipes still flip direction.
 - **Header at the narrow top of a round screen clips** full-width content —
   constrain to ~0.66 width, badge fixed, name marquees.
 - CSV is UTF-8. `vehicle.cooling` may be absent → "unknown". Compass labels coarse

@@ -36,6 +36,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -70,6 +71,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
+import androidx.wear.compose.foundation.SwipeToDismissBoxState
+import androidx.wear.compose.foundation.edgeSwipeToDismiss
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.PositionIndicatorState
@@ -93,6 +96,12 @@ import com.walzengroup.viennadepart.ui.common.RowSurface
 import com.walzengroup.viennadepart.ui.common.SquareBadge
 import com.walzengroup.viennadepart.ui.theme.ModeColor
 import kotlinx.coroutines.launch
+
+/**
+ * The nav host's swipe-to-dismiss state, published so the nested direction [HorizontalPager]
+ * can hand left-edge swipes back to it via [edgeSwipeToDismiss]. Null outside the host.
+ */
+val LocalSwipeToDismissState = staticCompositionLocalOf<SwipeToDismissBoxState?> { null }
 
 @OptIn(ExperimentalWearFoundationApi::class)
 @Composable
@@ -428,7 +437,15 @@ private fun DeparturesBody(ui: DeparturesUi, app: AppViewModel) {
         DirectionTabs(ui.directions, pagerState.currentPage) { idx ->
             scope.launch { pagerState.animateScrollToPage(idx) }
         }
-        HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
+        // Let a left-edge swipe fall through to the nav host's back (swipe-to-dismiss) instead
+        // of being eaten by the pager; mid-screen swipes still flip direction.
+        val swipeState = LocalSwipeToDismissState.current
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .weight(1f)
+                .then(if (swipeState != null) Modifier.edgeSwipeToDismiss(swipeState) else Modifier),
+        ) { page ->
             DirectionList(ui.directions[page], scrollStates[page], lineColor, favorited, toggleFavorite)
         }
     }
