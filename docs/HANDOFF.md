@@ -12,12 +12,40 @@ deviated from the spec.
 - **Phase 1 — done.** Bare Wear app on the emulator.
 - **Phase 2 — done.** Location flow, swipe-direction departures, home pager,
   search, crown-scroll between stations, bundled+refreshable route data.
-- **Phase 3 — favorites done; tile NOT started.** Star/pin lines, favorites page,
-  favorite → nearest stop → departures, settings. The **honeycomb Tile** is the
-  main remaining feature.
+- **Phase 3 — favorites + crown rework + index view done; tile NOT started.**
+  Star/pin lines, favorites page, favorite → nearest stop → departures, settings.
+  The crown UX was reworked (see below) and a **fast-crown index (register) view**
+  was added. The **honeycomb Tile** is the main remaining feature.
 
 The app builds and runs; it's been driven on the emulator continuously this
 session.
+
+## Departures crown + index view (current behaviour)
+
+- **Crown opens the index.** Slow step-between-stops is gone. Any crown in the
+  departures view opens a full-screen **index (register) view**: a mode-colour
+  route line bowed to the round screen (a parabola in y, sampled — not a polyline),
+  a white dot per stop, two-line station names to the right, the current stop
+  highlighted and centred. Crown moves the highlight; a **tap** selects (auto-loads
+  that stop, adds it to `loaded`); a **horizontal swipe** cancels back to the prior
+  stop. `TimeText` is hidden while the index is open. `IndexView` uses a plain
+  `Box` + `onSizeChanged` (NOT `BoxWithConstraints` — the IDE's Compose lint flags
+  an unused scope even when the CLI lint doesn't).
+- **Chrome is persistent, header rides in the page.** Background gradient +
+  bezel `PositionIndicator` are drawn once above the pager; the header (badge +
+  stop name, from bundled data so it never blanks) slides inside each page. The
+  multi-platform list is a plain touch-scroll `Column`, NOT `ScalingLazyColumn`
+  (the SLC has built-in rotary and swallowed the crown once it took focus on touch).
+- **Loaded stops persist.** `loaded` is a `mutableStateListOf` hoisted above the
+  pager, so a stop stays loaded when its page scrolls out and back. Live refresh is
+  scoped to the on-screen stop (`Loadable` keys on `refreshMs`).
+- **Favorite star** is the last item in the scrolling departures content (no
+  background); on single-platform stops it sits at the bottom of the page. **Do not
+  make it a floating overlay or a chrome-docked bar** (repeatedly-corrected point).
+- **Departure cards** show the wall-clock time overlaid at the card's true centre.
+- **`chainFor` matches BOTH pattern ends to live termini** before taking the
+  longest, so short-worked lines (e.g. 44) don't extend to a rare long variant's
+  far terminus (Winckelmannstraße). Terminus-only + longest-overall are fallbacks.
 
 ## Project / build facts
 
@@ -79,22 +107,13 @@ session.
 2. **Favorites management on the list** — currently tap = open, and unpin is only
    via the star on the departures screen. Add unpin + reorder on the Favorites
    page (spec wants it).
-3. **Crown scrolling — needs rework (known problems).** The current
-   `VerticalPager`-over-stations approach works but feels wrong:
-   - **Catches on multi-platform stations** — a stop with 2+ platforms (inner
-     scrollable list) traps the crown and won't advance past it.
-   - **Doesn't feel like one sheet** — it reads as paging through separate windows
-     with heavy snapping, not scrolling a single continuous surface. Likely wants
-     a proportional/continuous rotary scroll (a single scrollable surface, or
-     `rotaryScrollable` with a gentler snap) rather than page-per-stop.
-   - **Load button shows the global spinner** — tapping reload swaps in
-     `Loadable`'s full-screen `CenteredProgress`. It should keep the line number +
-     station name visible and only show a spinner in the body (don't blank the
-     header).
-   - **Background gradient scrolls with the pages** — it should be a single
-     persistent background behind everything, not re-drawn per sliding page.
+3. **Crown scrolling — DONE.** Reworked into persistent chrome + in-page header +
+   plain touch-scroll list, then replaced stop-stepping with the fast-crown **index
+   view**. See "Departures crown + index view" above. Spec:
+   `docs/superpowers/specs/2026-07-11-departures-index-view-design.md`.
 4. **Polish / deferred:** confirm bus / Badner-Bahn brand colors; Material 3
-   migration (currently M2).
+   migration (currently M2). Index view tuning knobs (trigger sensitivity, curve
+   bow, spacing, dot sizes, name width) are constants in `IndexView`.
 
 ## Design decisions locked (incl. deviations from the spec)
 
@@ -102,13 +121,14 @@ session.
   ("Tram"/"Bus"/"Subway"/…), *not* termini — deriving termini from the route data
   was unreliable (depot/short-working variants). Tap → nearest stop on the line →
   departures.
-- **Crown = scroll between stations** (`VerticalPager`, crown-only, inner list
-  keeps touch-scroll). Crowning fires **no API requests**: each crowned-to station
-  shows its name + a **reload button** to tap; only the opened stop auto-loads.
-  This replaced the earlier discrete-step + auto-fetch (which got rate-limited).
-- **Crown route order** comes from the `fahrwegverlaeufe` pattern whose **terminus
-  matches a live destination** (`DeparturesUi.directions` labels), not the longest
-  pattern — avoids depot runs like "Bhf Hernals Kurzführung".
+- **Crown opens the index view** (see the crown section above). Crowning fires
+  **no API requests**; selecting a stop in the index auto-loads it. Reached-but-not-
+  selected stops never fetch.
+- **Crown route order / chain** comes from the `fahrwegverlaeufe` pattern whose
+  ends match the live termini (`DeparturesUi.directions` labels). `chainFor`
+  requires **both** ends to be live termini (then longest), falling back to
+  terminus-only then longest-overall — avoids depot runs ("Bhf Hernals
+  Kurzführung") and short-work overshoot (44 → Winckelmannstraße).
 - **Home** = Favorites · Nearby · Search · Settings (Settings is a 4th slide, not
   a nav screen). Settings has an **"Open to favorites / Open to home"** toggle.
 - Departures: swipe = direction; same-direction platforms stack (single platform
