@@ -2,6 +2,7 @@ package com.walzengroup.viennadepart.data.stops
 
 import android.content.Context
 import android.location.Location
+import com.walzengroup.viennadepart.data.TransitData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -22,12 +23,32 @@ object StopRepository {
 
     private val mutex = Mutex()
     @Volatile private var cache: List<PhysicalStop>? = null
+    @Volatile private var rblLookup: Map<Int, PhysicalStop>? = null
 
     suspend fun stops(context: Context): List<PhysicalStop> {
         cache?.let { return it }
         return mutex.withLock {
             cache ?: load(context.applicationContext).also { cache = it }
         }
+    }
+
+    /** The physical stop that owns the given platform RBL, or null. */
+    suspend fun stopForRbl(context: Context, rbl: Int): PhysicalStop? {
+        val index = rblLookup ?: run {
+            val all = stops(context)
+            mutex.withLock {
+                rblLookup ?: HashMap<Int, PhysicalStop>().apply {
+                    all.forEach { s -> s.platforms.forEach { put(it.rbl, s) } }
+                }.also { rblLookup = it }
+            }
+        }
+        return index[rbl]
+    }
+
+    /** Drop parsed data so the next read reloads from the (possibly refreshed) file. */
+    fun invalidate() {
+        cache = null
+        rblLookup = null
     }
 
     suspend fun nearest(context: Context, lat: Double, lon: Double, limit: Int = 12): List<StopDistance> {
@@ -44,12 +65,15 @@ object StopRepository {
     suspend fun search(context: Context, query: String, limit: Int = 12): List<PhysicalStop> {
         val q = normalize(query)
         if (q.isBlank()) return emptyList()
-        return stops(context)
-            .map { it to scoreStop(q, it) }
-            .filter { it.second >= 0.5 }
-            .sortedByDescending { it.second }
-            .take(limit)
-            .map { it.first }
+        val all = stops(context)
+        // Scoring scans every stop; keep it off the main thread so search never janks.
+        return withContext(Dispatchers.Default) {
+            all.map { it to scoreStop(q, it) }
+                .filter { it.second >= 0.5 }
+                .sortedByDescending { it.second }
+                .take(limit)
+                .map { it.first }
+        }
     }
 
     private suspend fun load(context: Context): List<PhysicalStop> = withContext(Dispatchers.IO) {
@@ -59,7 +83,7 @@ object StopRepository {
         }
         val groups = LinkedHashMap<String, Group>()
 
-        context.assets.open("haltepunkte.csv").bufferedReader().useLines { lines ->
+        TransitData.open(context, "haltepunkte.csv").bufferedReader().useLines { lines ->
             lines.drop(1).forEach { line ->
                 val c = line.split(';')
                 if (c.size < 7) return@forEach
@@ -121,11 +145,55 @@ object StopRepository {
     private fun scoreStop(q: String, stop: PhysicalStop): Double =
         stop.aliases.maxOf { nameScore(q, normalize(it)) }
 
-    private fun nameScore(q: String, n: String): Double = when {
-        q == n -> 1.0
-        n.contains(q) -> 0.9 + 0.1 * (q.length.toDouble() / n.length)
-        n.startsWith(q) -> 0.8
-        else -> 0.0
+    /**
+     * Typo-tolerant name match. Exact / prefix / substring / word-prefix win
+     * outright; otherwise fall back to edit-distance, both against the whole name
+     * and against the best-matching substring window (so "jonstrasse" still finds
+     * "Johnstraße" and a typo'd fragment still finds a long name).
+     */
+    private fun nameScore(q: String, n: String): Double {
+        if (q.isEmpty() || n.isEmpty()) return 0.0
+        if (q == n) return 1.0
+        if (n.startsWith(q)) return 0.95
+        if (n.contains(q)) return 0.85
+        if (n.split(' ', '-', '/', '(', ')').any { it.isNotEmpty() && it.startsWith(q) }) return 0.8
+        val full = 1.0 - levenshtein(q, n).toDouble() / maxOf(q.length, n.length)
+        return maxOf(full, bestWindowRatio(q, n))
+    }
+
+    // Best edit-distance ratio of q against any same-ish-length substring of n.
+    private fun bestWindowRatio(q: String, n: String): Double {
+        val qlen = q.length
+        if (qlen < 2 || n.length < 2) return 0.0
+        var best = 0.0
+        for (w in (qlen - 1).coerceAtLeast(2)..(qlen + 1)) {
+            if (w > n.length) break
+            var start = 0
+            while (start + w <= n.length) {
+                val dist = levenshtein(q, n.substring(start, start + w))
+                val ratio = 1.0 - dist.toDouble() / maxOf(qlen, w)
+                if (ratio > best) best = ratio
+                start++
+            }
+        }
+        return best
+    }
+
+    private fun levenshtein(a: String, b: String): Int {
+        if (a == b) return 0
+        if (a.isEmpty()) return b.length
+        if (b.isEmpty()) return a.length
+        var prev = IntArray(b.length + 1) { it }
+        var curr = IntArray(b.length + 1)
+        for (i in 1..a.length) {
+            curr[0] = i
+            for (j in 1..b.length) {
+                val cost = if (a[i - 1] == b[j - 1]) 0 else 1
+                curr[j] = minOf(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
+            }
+            val t = prev; prev = curr; curr = t
+        }
+        return prev[b.length]
     }
 
     private fun normalize(s: String): String {

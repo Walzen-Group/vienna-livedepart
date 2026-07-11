@@ -276,16 +276,20 @@ Each phase runs and shows something before the next begins.
   that fuzzy-matches any stop and prints live departures with compass labels and
   H/R. Proved the API, the data contract, DIVA grouping, and every field the app
   needs. No API key.
-- **Phase 1 — bare Wear OS app, one hardcoded line + stop, live.** The departures
-  screen only (no location, no favorites). Purpose: learn the toolchain, the
-  emulator, then install to the real watch. Kotlin + Compose for Wear OS.
-- **Phase 2 — the app proper (location is the engine).** Home pager, GPS, the
-  bundled CSV, nearby stops, search, pick a line, the full departures screen with
-  swipe-direction, stacked platforms, and crown-scroll to farther stops. Nearest
-  stop / nearest pole resolved by coordinate.
-- **Phase 3 — favorites and the tile.** Pin lines (max six), persist locally, the
-  manage screen, and the honeycomb Tile with the centre app button and deep-links
-  back into the located departures view.
+- **Phase 1 — done.** Bare Wear OS app, live departures on the emulator.
+- **Phase 2 — done.** Home pager, GPS, bundled CSVs, nearby stops, search, pick a
+  line, swipe-direction departures, stacked platforms, and crown-scroll between
+  stations. Also: bundled + refreshable route data.
+- **Phase 3 — favorites done; tile remaining.** Pin lines (max six, persisted),
+  favorites page, favorite → nearest stop → departures, settings. The honeycomb
+  **Tile** (ProtoLayout) is the outstanding feature.
+
+**Implementation deviations from this draft (see `docs/HANDOFF.md`):** the
+favorites list shows the line's **mode** ("Tram"/"Bus"/…), not its termini (route
+data has depot/short-working variants); the **crown scrolls between stations** and
+each crowned-to station shows a **reload button** (no request until tapped, to
+avoid rate-limiting); Settings is a 4th home slide with an **open-to-favorites**
+toggle. Built on Wear Compose **Material 2** (1.4.1), not Material 3.
 
 ## Locked interaction summary
 

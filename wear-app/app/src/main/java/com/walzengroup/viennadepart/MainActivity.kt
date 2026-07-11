@@ -5,12 +5,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
+import com.walzengroup.viennadepart.data.LastConnectionStore
 import com.walzengroup.viennadepart.ui.DeparturesScreen
+import com.walzengroup.viennadepart.ui.FavoriteOpenScreen
 import com.walzengroup.viennadepart.ui.HomeScreen
 import com.walzengroup.viennadepart.ui.NearbyScreen
 import com.walzengroup.viennadepart.ui.StopLinesScreen
@@ -26,23 +29,62 @@ class MainActivity : ComponentActivity() {
 
                 SwipeDismissableNavHost(navController = nav, startDestination = "home") {
                     composable("home") {
-                        HomeScreen(onNearby = { nav.navigate("nearby") })
+                        HomeScreen(
+                            app = app,
+                            onLocate = {
+                                app.nearbyStops = null // a fresh Locate tap refetches
+                                nav.navigate("nearby")
+                            },
+                            onStopSelected = { stop ->
+                                app.selectedStop = stop
+                                nav.navigate("lines")
+                            },
+                            onOpenLast = { stop, line ->
+                                app.selectedStop = stop
+                                app.selectedLine = line
+                                nav.navigate("departures")
+                            },
+                            onOpenFavorite = { fav ->
+                                app.selectedLine = fav.line
+                                nav.navigate("favorite")
+                            },
+                        )
                     }
                     composable("nearby") {
-                        NearbyScreen(onSelect = { stop ->
-                            app.selectedStop = stop
-                            nav.navigate("lines")
-                        })
+                        NearbyScreen(
+                            cached = app.nearbyStops,
+                            onLoaded = { app.nearbyStops = it },
+                            onSelect = { stop ->
+                                app.selectedStop = stop
+                                nav.navigate("lines")
+                            },
+                        )
                     }
                     composable("lines") {
+                        val context = LocalContext.current
                         val stop = app.selectedStop
                         if (stop == null) {
                             PopBack(nav)
                         } else {
-                            StopLinesScreen(stop, onSelect = { line ->
+                            StopLinesScreen(stop, onSelect = { line, type ->
                                 app.selectedLine = line
+                                LastConnectionStore.save(context, stop, line, type)
                                 nav.navigate("departures")
                             })
+                        }
+                    }
+                    composable("favorite") {
+                        val line = app.selectedLine
+                        if (line == null) {
+                            PopBack(nav)
+                        } else {
+                            FavoriteOpenScreen(line) { stop ->
+                                app.selectedStop = stop
+                                nav.navigate("departures") {
+                                    // Drop the loading screen so Back returns to Home.
+                                    popUpTo("favorite") { inclusive = true }
+                                }
+                            }
                         }
                     }
                     composable("departures") {
@@ -51,7 +93,7 @@ class MainActivity : ComponentActivity() {
                         if (stop == null || line == null) {
                             PopBack(nav)
                         } else {
-                            DeparturesScreen(stop, line)
+                            DeparturesScreen(stop, line, app)
                         }
                     }
                 }

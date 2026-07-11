@@ -2,155 +2,146 @@
 
 Continuation doc for a fresh session. Read this + the design spec
 (`docs/superpowers/specs/2026-07-11-wearos-vienna-departures-design.md`, the UX
-source of truth) before writing code. The design spec has the full UX detail;
-this doc is **state + remaining work + gotchas**.
+source of truth) before writing code. The spec has the UX intent; this doc is
+**current state + remaining work + gotchas**, and records where the build
+deviated from the spec.
 
 ## Where things stand
 
-- **Phase 0 — done.** `phase0/departures.py` (uv/Python) proves the API. Bundles
-  `phase0/data/wienerlinien-ogd-haltepunkte.csv`.
-- **Phase 1 — done.** Bare Wear app compiled and ran on the emulator.
-- **Phase 2 — increment 1 of 2 done.** The location-driven flow works end to end:
-  **Home (Nearby button) → nearby stops (GPS) → pick a line → departures**.
-- **Phase 2 increment 2 + Phase 3 — remaining** (this doc).
+- **Phase 0 — done.** `phase0/departures.py` (uv/Python) proves the API.
+- **Phase 1 — done.** Bare Wear app on the emulator.
+- **Phase 2 — done.** Location flow, swipe-direction departures, home pager,
+  search, crown-scroll between stations, bundled+refreshable route data.
+- **Phase 3 — favorites done; tile NOT started.** Star/pin lines, favorites page,
+  favorite → nearest stop → departures, settings. The **honeycomb Tile** is the
+  main remaining feature.
 
-The app builds and runs. It's been installed and driven on the emulator this
-session. Umlauts, location, and caching are sorted.
+The app builds and runs; it's been driven on the emulator continuously this
+session.
 
 ## Project / build facts
 
-- **App module:** `wear-app/` (open this folder in Android Studio). Package
+- **App module:** `wear-app/` (open in Android Studio). Package
   `com.walzengroup.viennadepart`.
-- **Toolchain (set by Android Studio's upgrade assistant):** AGP **9.2.1**,
-  Kotlin **2.2.10**, Gradle **9.4.1**, JDK 17. UI on **Wear Compose Material
-  1.4.1** (the spec targets Material 3 later; M2 is what builds today). AGP 9 is
-  bleeding-edge — `gradle.properties` has AGP-9 compat flags that emit harmless
+- **Toolchain:** AGP **9.2.1**, Kotlin **2.2.10**, Gradle **9.4.1**, JDK 17. Wear
+  Compose Material **1.4.1** (M2 — the spec's Material 3 is a future migration).
+  `androidx.wear:wear-input:1.2.0` added for search input. AGP 9 emits harmless
   deprecation warnings.
-- **Build from CLI (works, verified):** from `wear-app/`,
-  `./gradlew.bat :app:assembleDebug`. Use PowerShell, not the Bash tool (a hook
-  redirects build commands). Filter output for `error:|BUILD|FAILED`.
-- **Install + launch on the running emulator (adb at `C:\adb\adb.exe`):**
+- **Build (verified):** from `wear-app/`, PowerShell (a hook redirects build
+  commands away from the Bash tool):
+  `./gradlew.bat :app:assembleDebug` — filter for `error:|BUILD|FAILED|e: `.
+- **Install + launch (adb at `C:\adb\adb.exe`):** always **force-stop** before
+  launch so the new APK's process actually restarts:
   ```
   adb -s emulator-5554 install -r app\build\outputs\apk\debug\app-debug.apk
+  adb -s emulator-5554 shell am force-stop com.walzengroup.viennadepart
   adb -s emulator-5554 shell am start -n com.walzengroup.viennadepart/.MainActivity
   ```
-- **Set the emulator's location (needed for Nearby):**
-  `adb -s emulator-5554 emu geo fix 16.3726 48.2088` (lon lat = Stephansplatz).
-  In the GUI it's the emulator's `⋮` More button → Extended controls → Location.
-- **Working split:** Claude writes/edits code and can build + install + launch via
-  the commands above; Claude can also reach the Wiener Linien API directly (curl /
-  ctx_execute) to check RBLs and data. The developer watches the emulator and
-  gives feedback.
+- **Emulator location (needed for Nearby / favorites open):**
+  `adb -s emulator-5554 emu geo fix 16.3726 48.2088` (Stephansplatz). A reboot
+  clears it — re-set after `adb reboot`.
+- **Working split:** Claude edits code and can build + install + launch + reach
+  the Wiener Linien API (curl / ctx_execute) to verify data. The developer
+  watches the emulator and gives feedback.
 
-## What Phase 2 increment 1 built
+## What's built (files under `.../viennadepart/`)
 
-Under `wear-app/app/src/main/java/com/walzengroup/viennadepart/`:
-
-- `data/stops/StopRepository.kt` — loads `assets/haltepunkte.csv` (**UTF-8**),
-  groups platforms by DIVA into `PhysicalStop`, derives compass labels, answers
-  `nearest()` / `search()`. Cached after first load.
-- `location/LocationProvider.kt` — one-shot fused location with a 10s timeout and
-  a framework last-known fallback (works on emulators without GMS). 60s cache.
-- `data/DeparturesRepository.kt` — `linesAtStop()` and `departuresForLine()` from
-  one monitor call over the stop's RBLs; groups by platform; 20s `MonitorCache`.
-- `ui/HomeScreen.kt` — the Nearby map-pin button (start destination).
-- `ui/NearbyScreen.kt` — permission + GPS + nearest-stops list.
-- `ui/StopLinesScreen.kt` — lines at a stop (two termini, square badge).
-- `ui/DeparturesScreen.kt` — departures, **both directions stacked**, platform
-  grouping (compass+RBL header when a direction has 2+ platforms), mode-color
-  ground, ❄️/♿/⚠️ glyphs.
-- `ui/common/Ui.kt` — `Loadable` (spinner/error/retry), badges, glyphs.
-- `MainActivity.kt` — `SwipeDismissableNavHost`: home → nearby → lines →
-  departures. `AppViewModel.kt` holds the stop+line selection.
-- `ui/theme/ModeColor.kt` — the verified transport colors.
+- **Data:** `stops/StopRepository.kt` (bundled `haltepunkte.csv`, UTF-8; nearest /
+  typo-tolerant `search()` off the main thread; `stopForRbl`),
+  `DeparturesRepository.kt` (`linesAtStop`, `departuresForLine`; 20s
+  `MonitorCache`), `RouteRepository.kt` (bundled `linien.csv` +
+  `fahrwegverlaeufe.csv` → line→ordered-stop chain **matched to the live termini**,
+  and `nearestStopOnLine`), `TransitData.kt` (filesDir-preferred loading +
+  validated download/refresh + cache invalidation), `LastConnection.kt`,
+  `SearchHistory.kt`, `Favorites.kt`, `AppSettings.kt`, `UiModels.kt`.
+- **UI:** `HomeScreen.kt` (4-page `HorizontalPager`: Favorites · Nearby · Search ·
+  Settings; Nearby = split Locate/recent pill; Search = text+voice + fuzzy +
+  history; Favorites list + gold star/gradient), `DeparturesScreen.kt`
+  (swipe=direction tabs+`HorizontalPager`, **crown = vertical station
+  `VerticalPager`**, bottom star, boarding ✳, mode-color gradient),
+  `SettingsScreen.kt` (SettingsPage: update transit data + open-to toggle),
+  `NearbyScreen.kt`, `StopLinesScreen.kt`, `FavoriteOpenScreen.kt`,
+  `ui/common/Ui.kt` (`Loadable` with `loadingLabel`/`refreshMs`/`key`),
+  `ui/theme/ModeColor.kt` (`forLine` + `modeName`).
+- **AppViewModel.kt** — holds selection + hoists `searchHistory` and `favorites`
+  (so they survive home page swipes) via `ensureLoaded`.
+- **assets:** `haltepunkte.csv`, `linien.csv`, `fahrwegverlaeufe.csv`.
+  **res/drawable:** `ic_pin`, `ic_search`, `ic_star`, `ic_refresh`.
 
 ## Remaining work
 
-### Phase 2 — increment 2 (finish the departures interaction + home)
+1. **The Tile (Phase 3, biggest).** Wear OS Tile via ProtoLayout
+   (`androidx.wear.tiles` + `androidx.wear.protolayout`, **NOT Compose**). Six
+   line buttons in a honeycomb around a centre app button; dark circular tiles,
+   line number in mode color; static, no scroll, hard cap 6. Tapping a line
+   deep-links into that favorite's located departures (same as `onOpenFavorite`);
+   centre opens the app. Reads `FavoritesStore`.
+2. **Favorites management on the list** — currently tap = open, and unpin is only
+   via the star on the departures screen. Add unpin + reorder on the Favorites
+   page (spec wants it).
+3. **Crown scrolling — needs rework (known problems).** The current
+   `VerticalPager`-over-stations approach works but feels wrong:
+   - **Catches on multi-platform stations** — a stop with 2+ platforms (inner
+     scrollable list) traps the crown and won't advance past it.
+   - **Doesn't feel like one sheet** — it reads as paging through separate windows
+     with heavy snapping, not scrolling a single continuous surface. Likely wants
+     a proportional/continuous rotary scroll (a single scrollable surface, or
+     `rotaryScrollable` with a gentler snap) rather than page-per-stop.
+   - **Load button shows the global spinner** — tapping reload swaps in
+     `Loadable`'s full-screen `CenteredProgress`. It should keep the line number +
+     station name visible and only show a spinner in the body (don't blank the
+     header).
+   - **Background gradient scrolls with the pages** — it should be a single
+     persistent background behind everything, not re-drawn per sliding page.
+4. **Polish / deferred:** confirm bus / Badner-Bahn brand colors; Material 3
+   migration (currently M2).
 
-1. **Swipe = direction on the departures screen.** Right now it shows both
-   directions stacked; the design shows **one direction at a time**, swipe
-   left/right to flip H ↔ R, with the two destinations as tabs
-   (`‹ Westbahnhof · Gersthof ›`) up top. Within a direction, keep the existing
-   platform-stacking (2+ poles → a `→ dest compass·RBL` header each; single
-   platform → no header). Use `HorizontalPager` (2 pages: H, R). The grouping
-   data already exists in `departuresForLine` — split `PlatformGroup`s by
-   direction into two pages.
-2. **Crown = next stop along the line (farther out).** *Needs data we don't bundle
-   yet.* `haltepunkte.csv` has no line→stop routing. Decide one of:
-   - Bundle the OGD **`linien` + `fahrwegverlaeufe`** (route path) CSVs and step
-     along the real sequence from the current stop outward, OR
-   - Approximate: step through stops that serve the line, sorted by distance from
-     the user (no true route order).
-   Then wire rotary input: `Modifier.onRotaryScrollEvent` / `rotaryScrollable`
-   with a `FocusRequester` (rotary events only reach the focused element — this
-   is the #1 gotcha).
-3. **Home pager: Favorites / Nearby / Search.** Replace the single Nearby button
-   with a `HorizontalPager` — swipe left for Favorites, right for Search; Nearby
-   in the middle. Up/down stays free for list scrolling. (Favorites content is
-   Phase 3; a placeholder is fine until then.)
-4. **Search a stop.** Use the watch's built-in text + voice input
-   (`RemoteInput` via `ActivityResultContracts` / Wear input intent), fuzzy-match
-   with `StopRepository.search()` (already written), show results like Nearby.
-5. **First-load affordance (polish).** The first stop fetch is one network call;
-   consider a lightweight "loading…" cue so it doesn't feel dead. (Open question
-   I left with the user.)
+## Design decisions locked (incl. deviations from the spec)
 
-### Phase 3 — favorites + tile
+- **Favorite = a line.** The favorites list shows the line badge + **mode label**
+  ("Tram"/"Bus"/"Subway"/…), *not* termini — deriving termini from the route data
+  was unreliable (depot/short-working variants). Tap → nearest stop on the line →
+  departures.
+- **Crown = scroll between stations** (`VerticalPager`, crown-only, inner list
+  keeps touch-scroll). Crowning fires **no API requests**: each crowned-to station
+  shows its name + a **reload button** to tap; only the opened stop auto-loads.
+  This replaced the earlier discrete-step + auto-fetch (which got rate-limited).
+- **Crown route order** comes from the `fahrwegverlaeufe` pattern whose **terminus
+  matches a live destination** (`DeparturesUi.directions` labels), not the longest
+  pattern — avoids depot runs like "Bhf Hernals Kurzführung".
+- **Home** = Favorites · Nearby · Search · Settings (Settings is a 4th slide, not
+  a nav screen). Settings has an **"Open to favorites / Open to home"** toggle.
+- Departures: swipe = direction; same-direction platforms stack (single platform
+  skips the header and is centered + non-scrollable). **No H/R in the group
+  header** (the tabs already say the direction).
+- Boarding = **✳** blink at 0 min. A/C snowflake year-round. Deep mode-color
+  ground. Short-turns/depot runs shown, not filtered.
+- Transit CSVs are bundled **and** refreshable from Settings (filesDir wins over
+  the bundled asset).
 
-6. **Favorites model.** A favorite is a **line** (not a stop), max **6**. Persist
-   locally (DataStore Preferences). A Favorites management screen (the pager's
-   left page): pin/unpin (star), reorder.
-7. **Tapping a favorite line → nearest stop on that line → departures.** *Same
-   routing-data problem as crown:* "nearest stop that serves line X" needs
-   line→stops mapping, or an approximation (check nearby stops' live monitors for
-   the line). Decide alongside task 2.
-8. **The tile.** A Wear OS **Tile** (ProtoLayout / `androidx.wear.tiles` +
-   `androidx.wear.protolayout`, **NOT Compose** — the biggest divergence). Six
-   line buttons in a honeycomb around a centre app button (white train icon).
-   Dark circular tiles, line number in mode color. Static, no scroll, hard cap 6.
-   Tapping a line deep-links into the located departures view; tapping the centre
-   opens the app. Tiles render as static snapshots — plan refresh/tap intents.
+## Gotchas discovered
 
-## Design decisions already locked (don't re-litigate)
-
-From the design spec + this session:
-
-- Favorite = a **line**; tap geolocates to the nearest stop on it.
-- Departures: **swipe = direction**, **crown = next stop**. Same-direction
-  platforms stack; single-platform directions skip the header.
-- Home opens on **Nearby**; **swipe** left/right to Favorites/Search (up/down
-  scrolls lists). Search = system text+voice.
-- **A/C snowflake year-round.** Deep **mode-color ground** on the times screen.
-- **Short-turns / depot runs are shown**, not filtered (they're rideable). They
-  sort to the bottom by countdown and get their own `→ destination` header.
-- Tile: **6 lines + centre app button**, static, no scroll.
-- Colors are an **in-app map** (feed has none) — see `ModeColor.kt`. Bus / Badner
-  Bahn blues are conventional; confirm vs the official brand guide before ship.
-
-## Gotchas discovered this session
-
-- **CSV is UTF-8**, not cp1252 (the earlier cp1252 reading caused `BrandstÃ¤tte`).
-  Phase 0's `departures.py` still reads cp1252 — tidy it if that file is UTF-8 too
-  (low priority, it's the throwaway proof script).
-- **Rotary needs focus** — no `FocusRequester` = crown does nothing.
-- **`vehicle.cooling` may be absent** on old responses → render "unknown", not
-  "no A/C".
-- **Compass labels are coarse** (8 buckets); the RBL in the header disambiguates.
-- **Route/sequence data is not bundled** — the crown-stops and
-  nearest-stop-on-a-line features both hinge on deciding how to get it. Resolve
-  this first when starting increment 2, it blocks tasks 2 and 7.
-- **Emulator location must be set** or Nearby errors (fast, with Retry).
+- **Rotary needs `rememberActiveFocusRequester()`** (Wear foundation,
+  `@OptIn(ExperimentalWearFoundationApi::class)`). A plain `FocusRequester` +
+  manual `requestFocus()` did NOT hold focus → crown fired nothing.
+- **Search input:** the watch keyboard leaves the last word uncommitted unless the
+  IME action commits it → set `setInputActionType(IME_ACTION_SEARCH)` via
+  `WearableRemoteInputExtender` (wear-input 1.2.0). The **PC hardware keyboard**
+  still won't commit on the emulator — emulator-only, fine on-device.
+- **`fahrwegverlaeufe.StopID` = the RBL** (haltepunkte StopID), Direction 1/2 =
+  H/R. Lines have **many patterns** (depot runs, short-workings); pick by matching
+  the live terminus, not by length.
+- **`am start` alone can resume a stale process** — always `am force-stop` first.
+- **Header at the narrow top of a round screen clips** full-width content —
+  constrain to ~0.66 width, badge fixed, name marquees.
+- CSV is UTF-8. `vehicle.cooling` may be absent → "unknown". Compass labels coarse
+  (RBL disambiguates). Emulator location must be set or Nearby errors.
 
 ## Suggested order for next session
 
-1. Decide the route-data question (bundle `linien`/`fahrwegverlaeufe` vs
-   approximate) — unblocks crown + favorites.
-2. Swipe-direction on the departures screen (task 1) — self-contained, high value.
-3. Home pager + search (tasks 3, 4).
-4. Crown-stops (task 2).
-5. Phase 3: favorites persistence + management (tasks 6, 7).
-6. Phase 3: the tile (task 8) — largest, most different (ProtoLayout).
+1. The **Tile** (ProtoLayout) — the last major feature.
+2. Favorites unpin/reorder on the list.
+3. Brand-color check; consider the Material 3 migration.
 
-Each should build (`:app:assembleDebug`) and ideally be installed to the emulator
-for a look before moving on.
+Each change should build (`:app:assembleDebug`) and be installed (with
+`am force-stop`) for a look before moving on.

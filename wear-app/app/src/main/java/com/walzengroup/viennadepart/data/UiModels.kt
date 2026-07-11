@@ -12,6 +12,16 @@ data class DeparturesUi(
     val stopName: String,
     val line: String,
     val lineType: String?,
+    val directions: List<DirectionPage>,
+)
+
+/**
+ * One swipe page: a single direction (H/R) at the stop, with a tab label (the
+ * representative terminus) and the platform groups that serve that direction.
+ */
+data class DirectionPage(
+    val direction: String, // "H" / "R"
+    val label: String,     // shown as the tab, e.g. "Gersthof"
     val platforms: List<PlatformGroup>,
 )
 

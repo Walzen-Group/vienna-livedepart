@@ -72,12 +72,29 @@ class DeparturesRepository {
             .map { it.copy(showPlatformLabel = (perDirection[it.direction] ?: 0) >= 2) }
             .sortedWith(compareBy({ it.direction }, { it.departures.first().countdown }))
 
-        return DeparturesUi(stop.name, line, lineType, labeled)
+        // One page per direction (H before R), each with a representative terminus
+        // for its tab: the destination most platforms serve, so short-turns lose.
+        val pages = labeled.groupBy { it.direction }
+            .map { (dir, grps) ->
+                val label = grps.groupingBy { it.towards }.eachCount()
+                    .maxByOrNull { it.value }?.key ?: dir
+                DirectionPage(dir, label, grps)
+            }
+            .sortedBy { directionOrder(it.direction) }
+
+        return DeparturesUi(stop.name, line, lineType, pages)
     }
 
     // Sort trams/buses by number; U-Bahn and letter lines fall to the end.
     private fun numericKey(name: String): Int =
         name.filter { it.isDigit() }.toIntOrNull() ?: 9999
+
+    // H (Hin) reads as the first page, R (Rück) second; anything else trails.
+    private fun directionOrder(direction: String): Int = when (direction) {
+        "H" -> 0
+        "R" -> 1
+        else -> 2
+    }
 
     // One monitor call per stop, reused briefly across the line list, the
     // departures screen, and back-navigation so those feel instant.

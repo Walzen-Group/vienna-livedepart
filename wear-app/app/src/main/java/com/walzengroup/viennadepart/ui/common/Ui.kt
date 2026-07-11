@@ -4,15 +4,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,16 +34,39 @@ import kotlin.math.roundToInt
 val MutedText = Color(0xFF8B8B92)
 val RowSurface = Color(0xFF1E1E25)
 
-/** Runs [loader], showing a spinner while it runs and an error + retry on failure. */
+/**
+ * Runs [loader], showing a spinner while it runs and an error + retry on failure.
+ * [loadingLabel] is shown under the spinner to say what's happening (e.g. "Locating…").
+ * When [refreshMs] > 0 the loader re-runs on that interval, replacing the content in
+ * place (no spinner) and keeping the last good value if a refresh fails.
+ * [key] re-runs the loader when it changes; the previous content stays on screen
+ * during the reload (no spinner) unless nothing has loaded yet — so stepping between
+ * inputs (e.g. crown = next stop) stays smooth.
+ */
 @Composable
-fun <T> Loadable(loader: suspend () -> T, content: @Composable (T) -> Unit) {
+fun <T> Loadable(
+    loader: suspend () -> T,
+    loadingLabel: String? = null,
+    refreshMs: Long = 0,
+    key: Any? = Unit,
+    content: @Composable (T) -> Unit,
+) {
     var attempt by remember { mutableIntStateOf(0) }
-    val state by produceState<Result<T>?>(initialValue = null, attempt) {
-        value = null
-        value = runCatching { loader() }
+    var state by remember { mutableStateOf<Result<T>?>(null) }
+    LaunchedEffect(attempt, key) {
+        val result = runCatching { loader() }
+        // Replace on success; on failure keep prior content unless there's none yet.
+        if (result.isSuccess || state == null) state = result
+        if (refreshMs > 0) {
+            while (true) {
+                delay(refreshMs)
+                val next = runCatching { loader() }
+                if (next.isSuccess) state = next // silent refresh; keep old on failure
+            }
+        }
     }
     when (val s = state) {
-        null -> CenteredProgress()
+        null -> CenteredProgress(loadingLabel)
         else -> s.fold(
             onSuccess = { content(it) },
             onFailure = { ErrorView(it.message ?: "Something went wrong") { attempt++ } },
@@ -48,9 +75,17 @@ fun <T> Loadable(loader: suspend () -> T, content: @Composable (T) -> Unit) {
 }
 
 @Composable
-fun CenteredProgress() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun CenteredProgress(label: String? = null) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         CircularProgressIndicator()
+        if (label != null) {
+            Spacer(Modifier.height(10.dp))
+            Text(label, color = MutedText, fontSize = 12.sp)
+        }
     }
 }
 

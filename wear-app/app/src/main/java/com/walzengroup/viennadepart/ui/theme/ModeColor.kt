@@ -39,4 +39,20 @@ object ModeColor {
             else -> Tram // trams are the default in this network
         }
     }
+
+    /** Human-readable transport mode, e.g. "Tram", "Bus", "Subway". */
+    fun modeName(name: String, type: String?): String {
+        when (name.uppercase()) {
+            "U1", "U2", "U3", "U4", "U5", "U6" -> return "Subway"
+        }
+        return when (type) {
+            "ptTram" -> "Tram"
+            "ptTrainS" -> "S-Bahn"
+            "ptBusCity", "ptBusNight" -> "Bus"
+            "ptRufBus" -> "On-call bus"
+            "ptMetro" -> "Subway"
+            "ptTramWLB" -> "Badner Bahn"
+            else -> "Tram"
+        }
+    }
 }

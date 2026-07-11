@@ -41,7 +41,11 @@ import com.walzengroup.viennadepart.ui.common.MutedText
 import com.walzengroup.viennadepart.ui.common.formatDistance
 
 @Composable
-fun NearbyScreen(onSelect: (PhysicalStop) -> Unit) {
+fun NearbyScreen(
+    cached: List<StopDistance>?,
+    onLoaded: (List<StopDistance>) -> Unit,
+    onSelect: (PhysicalStop) -> Unit,
+) {
     val context = LocalContext.current
     var granted by remember { mutableStateOf(hasLocationPermission(context)) }
     val launcher = rememberLauncherForActivityResult(
@@ -57,13 +61,21 @@ fun NearbyScreen(onSelect: (PhysicalStop) -> Unit) {
         return
     }
 
+    // Returning from the line list: reuse the last result, no GPS, no spinner.
+    if (cached != null) {
+        NearbyList(cached, onSelect)
+        return
+    }
+
     Loadable(
         loader = {
             val location = LocationProvider(context).current()
                 ?: error("Couldn't get your location. In the emulator open Extended controls → Location and send a point.")
             StopRepository.nearest(context, location.latitude, location.longitude)
         },
+        loadingLabel = "Locating…",
     ) { nearby ->
+        LaunchedEffect(nearby) { onLoaded(nearby) }
         NearbyList(nearby, onSelect)
     }
 }

@@ -36,7 +36,7 @@ import com.walzengroup.viennadepart.ui.common.SquareBadge
 import com.walzengroup.viennadepart.ui.theme.ModeColor
 
 @Composable
-fun StopLinesScreen(stop: PhysicalStop, onSelect: (String) -> Unit) {
+fun StopLinesScreen(stop: PhysicalStop, onSelect: (String, String?) -> Unit) {
     val repo = remember { DeparturesRepository() }
     Loadable(loader = { repo.linesAtStop(stop) }) { lines ->
         LineList(stop.name, lines, onSelect)
@@ -44,7 +44,7 @@ fun StopLinesScreen(stop: PhysicalStop, onSelect: (String) -> Unit) {
 }
 
 @Composable
-private fun LineList(stopName: String, lines: List<LineOption>, onSelect: (String) -> Unit) {
+private fun LineList(stopName: String, lines: List<LineOption>, onSelect: (String, String?) -> Unit) {
     val listState = rememberScalingLazyListState()
     Scaffold(
         timeText = { TimeText() },
@@ -67,7 +67,7 @@ private fun LineList(stopName: String, lines: List<LineOption>, onSelect: (Strin
                 item { Text("No lines running now", color = MutedText, fontSize = 13.sp) }
             }
             items(lines, key = { it.name }) { opt ->
-                LineRow(opt) { onSelect(opt.name) }
+                LineRow(opt) { onSelect(opt.name, opt.type) }
             }
         }
     }
