@@ -59,8 +59,14 @@ session.
   `com.walzengroup.viennadepart`.
 - **Toolchain:** AGP **9.2.1**, Kotlin **2.2.10**, Gradle **9.4.1**, JDK 17. Wear
   Compose Material **1.4.1** (M2 — the spec's Material 3 is a future migration).
-  `androidx.wear:wear-input:1.2.0` added for search input. AGP 9 emits harmless
-  deprecation warnings.
+  `androidx.wear:wear-input:1.2.0` added for search input.
+- **Kotlin is compiled by AGP 9's built-in Kotlin** — there is NO `kotlin.android`
+  plugin. The plugins block applies only `android.application`, `kotlin.compose`,
+  and `kotlin.serialization` (the last two are compiler plugins; built-in Kotlin
+  keeps them). No `kotlinOptions`/`compilerOptions` block: jvmTarget defaults to
+  `compileOptions.targetCompatibility` (17). Do NOT re-add `kotlin.android` or the
+  `android.builtInKotlin`/`android.newDsl=false` opt-outs — that was the old setup
+  and its deprecation warnings are gone. The build is now warning-clean.
 - **Two build environments** (both used): **macOS + nix** — `adb`, `java` (Zulu JDK
   17), and the Gradle wrapper on `PATH`, SDK at `/Users/sam/Library/Android/sdk`; and
   **Windows + PowerShell** — adb at `C:\adb\adb.exe`, build with `./gradlew.bat`. A
