@@ -2,8 +2,9 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
+    // Kotlin is compiled by AGP 9's built-in Kotlin support (no kotlin.android plugin).
+    // The Compose and serialization compiler plugins are still applied normally.
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
@@ -23,8 +24,8 @@ android {
         applicationId = "com.walzengroup.viennadepart"
         minSdk = 30            // Wear OS 3 (API 30) and up
         targetSdk = 34
-        versionCode = 5
-        versionName = "0.5"
+        versionCode = 6
+        versionName = "0.6"
     }
 
     signingConfigs {
@@ -55,10 +56,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+    // Built-in Kotlin defaults jvmTarget to compileOptions.targetCompatibility (17),
+    // so no kotlinOptions/compilerOptions block is needed.
 
     buildFeatures {
         compose = true

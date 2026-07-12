@@ -37,8 +37,8 @@ const val EXTRA_FAVORITE_LINE = "favorite_line"
 private const val RESOURCES_VERSION = "1"
 private const val TRAIN_ID = "train"
 private const val CELL_DP = 48f
-private const val V_GAP_DP = 14f // within a column — sets the vertical hex spacing
-private const val H_GAP_DP = 7f  // between columns
+private const val H_GAP_DP = 14f // between cells in a row — sets the horizontal hex spacing
+private const val V_GAP_DP = 7f  // between the three rows
 private val LINE_BG = 0xFF1C1C22.toInt()
 private val APP_BG = 0xFF202028.toInt()
 private val LINE_BORDER = 0x14FFFFFF // rgba(255,255,255,.08)
@@ -81,10 +81,11 @@ class FavoritesTileService : TileService() {
         return ResolvableFuture.create<ResourceBuilders.Resources>().apply { set(res) }
     }
 
-    // A hexagon around the centre, built as three columns: left [upper, lower], centre
-    // [top, app, bottom], right [upper, lower]. The Row centres the two-cell side columns
-    // against the three-cell centre, so their cells land in the hex valleys. Slots are filled
-    // clockwise from the top; empty ones stay as invisible cells so the shape holds.
+    // A flat-top hexagon around the centre, built as three rows: top [0, 1], middle
+    // [2, app, 3], bottom [4, 5] — a 2-3-2 layout. The Column centres the two-cell rows
+    // against the three-cell middle row, so their cells nest into the hex valleys. Slots
+    // fill in reading order (top-left first); empty ones stay as invisible cells so the
+    // shape holds.
     private fun honeycomb(favorites: List<Favorite>): LayoutElement {
         fun cell(i: Int): LayoutElement {
             val f = favorites.getOrNull(i) ?: return emptyCell()
@@ -94,17 +95,17 @@ class FavoritesTileService : TileService() {
         val vGap = Spacer.Builder().setHeight(dp(V_GAP_DP)).build()
         val hGap = Spacer.Builder().setWidth(dp(H_GAP_DP)).build()
 
-        val colLeft = Column.Builder()
-            .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
-            .addContent(cell(5)).addContent(vGap).addContent(cell(4))
+        val rowTop = Row.Builder()
+            .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
+            .addContent(cell(0)).addContent(hGap).addContent(cell(1))
             .build()
-        val colCenter = Column.Builder()
-            .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
-            .addContent(cell(0)).addContent(vGap).addContent(centerButton()).addContent(vGap).addContent(cell(3))
+        val rowMiddle = Row.Builder()
+            .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
+            .addContent(cell(2)).addContent(hGap).addContent(centerButton()).addContent(hGap).addContent(cell(3))
             .build()
-        val colRight = Column.Builder()
-            .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
-            .addContent(cell(1)).addContent(vGap).addContent(cell(2))
+        val rowBottom = Row.Builder()
+            .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
+            .addContent(cell(4)).addContent(hGap).addContent(cell(5))
             .build()
 
         return Box.Builder()
@@ -113,9 +114,9 @@ class FavoritesTileService : TileService() {
             .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
             .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
             .addContent(
-                Row.Builder()
-                    .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
-                    .addContent(colLeft).addContent(hGap).addContent(colCenter).addContent(hGap).addContent(colRight)
+                Column.Builder()
+                    .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
+                    .addContent(rowTop).addContent(vGap).addContent(rowMiddle).addContent(vGap).addContent(rowBottom)
                     .build(),
             )
             .build()

@@ -39,9 +39,15 @@ session.
 - **Loaded stops persist.** `loaded` is a `mutableStateListOf` hoisted above the
   pager, so a stop stays loaded when its page scrolls out and back. Live refresh is
   scoped to the on-screen stop (`Loadable` keys on `refreshMs`).
-- **Favorite star** is the last item in the scrolling departures content (no
-  background); on single-platform stops it sits at the bottom of the page. **Do not
-  make it a floating overlay or a chrome-docked bar** (repeatedly-corrected point).
+- **Favorite star — NEVER DOCK IT.** The star is ALWAYS the last item *inside* the
+  scrolling departures content (no background), reached by scrolling to the bottom;
+  it scrolls with the list. This holds for **both** the single- and multi-platform
+  branches of `DirectionList`. It must NOT be a floating overlay, a chrome-docked
+  bar, or a sibling placed below a `weight(1f)`/`fillMaxHeight` column (that pins it
+  to the screen bottom). The single-platform "sits at the bottom of the page" wording
+  was the trap — centering the pills pushed the star into a pinned slot. This has been
+  re-broken and re-fixed ~30 times; see the boxed rule at the top of
+  `DeparturesScreen.kt` and do not move it.
 - **Departure cards** show the wall-clock time overlaid at the card's true centre.
 - **`chainFor` matches BOTH pattern ends to live termini** before taking the
   longest, so short-worked lines (e.g. 44) don't extend to a rare long variant's
@@ -49,26 +55,44 @@ session.
 
 ## Project / build facts
 
-- **App module:** `wear-app/` (open in Android Studio). Package
+- **App module:** `wear-app/` (also opens in Android Studio). Package
   `com.walzengroup.viennadepart`.
 - **Toolchain:** AGP **9.2.1**, Kotlin **2.2.10**, Gradle **9.4.1**, JDK 17. Wear
   Compose Material **1.4.1** (M2 — the spec's Material 3 is a future migration).
-  `androidx.wear:wear-input:1.2.0` added for search input. AGP 9 emits harmless
-  deprecation warnings.
-- **Build (verified):** from `wear-app/`, PowerShell (a hook redirects build
-  commands away from the Bash tool):
-  `./gradlew.bat :app:assembleDebug` — filter for `error:|BUILD|FAILED|e: `.
-- **Install + launch (adb at `C:\adb\adb.exe`):** always **force-stop** before
-  launch so the new APK's process actually restarts:
+  `androidx.wear:wear-input:1.2.0` added for search input.
+- **Kotlin is compiled by AGP 9's built-in Kotlin** — there is NO `kotlin.android`
+  plugin. The plugins block applies only `android.application`, `kotlin.compose`,
+  and `kotlin.serialization` (the last two are compiler plugins; built-in Kotlin
+  keeps them). No `kotlinOptions`/`compilerOptions` block: jvmTarget defaults to
+  `compileOptions.targetCompatibility` (17). Do NOT re-add `kotlin.android` or the
+  `android.builtInKotlin`/`android.newDsl=false` opt-outs — that was the old setup
+  and its deprecation warnings are gone. The build is now warning-clean.
+- **Two build environments** (both used): **macOS + nix** — `adb`, `java` (Zulu JDK
+  17), and the Gradle wrapper on `PATH`, SDK at `/Users/sam/Library/Android/sdk`; and
+  **Windows + PowerShell** — adb at `C:\adb\adb.exe`, build with `./gradlew.bat`. A
+  hook redirects build commands away from Bash; run them via
+  `ctx_execute(language: "shell", ...)`. (Android Studio builds work on either; it
+  drives Gradle directly, not the wrapper script.) `adb devices` shows `emulator-5554`
+  plus, when connected, a real watch over wireless adb (e.g. `10.188.237.195:33151`) —
+  pass `-s emulator-5554` to target the emulator.
+- **Build (verified on macOS):** from `wear-app/`, `./gradlew :app:assembleDebug`
+  (`./gradlew.bat` on Windows) — filter for `error:|BUILD|FAILED|e: `.
+- **Install + launch:** always **force-stop** before launch so the new APK's process
+  actually restarts (prefix adb with `C:\adb\adb.exe` on Windows, and `\` path
+  separators for the APK):
   ```
-  adb -s emulator-5554 install -r app\build\outputs\apk\debug\app-debug.apk
+  adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
   adb -s emulator-5554 shell am force-stop com.walzengroup.viennadepart
   adb -s emulator-5554 shell am start -n com.walzengroup.viennadepart/.MainActivity
   ```
 - **Emulator location (needed for Nearby / favorites open):**
   `adb -s emulator-5554 emu geo fix 16.3726 48.2088` (Stephansplatz). A reboot
   clears it — re-set after `adb reboot`.
-- **Release build (signed, for a real watch):** `./gradlew.bat :app:assembleRelease`
+- **Gradle wrapper gotcha:** if `./gradlew <task>` fails with `Could not find or load
+  main class <task>`, the `gradlew` script is corrupted (it was, once — a duplicated
+  `"$@"` on the exec line put the task name in Java's main-class slot). Regenerate it:
+  `java -classpath gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain wrapper`.
+- **Release build (signed, for a real watch):** `./gradlew :app:assembleRelease`
   → `app/build/outputs/apk/release/app-release.apk`. Signing reads
   `wear-app/keystore.properties` (gitignored) which points at `wear-app/vienna-release.jks`
   (also gitignored, alias `vienna`). **Back up the .jks + password** — losing it means

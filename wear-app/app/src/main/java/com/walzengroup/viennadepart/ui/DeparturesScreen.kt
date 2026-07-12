@@ -79,6 +79,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import com.walzengroup.viennadepart.AppViewModel
 import com.walzengroup.viennadepart.R
+import com.walzengroup.viennadepart.data.AppSettings
 import com.walzengroup.viennadepart.data.DeparturesRepository
 import com.walzengroup.viennadepart.data.DeparturesUi
 import com.walzengroup.viennadepart.data.DepartureUi
@@ -94,11 +95,26 @@ import com.walzengroup.viennadepart.ui.common.SquareBadge
 import com.walzengroup.viennadepart.ui.theme.ModeColor
 import kotlinx.coroutines.launch
 
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │ THE FAVORITE STAR RULE — do not violate, do not "improve" this away.        │
+// │                                                                             │
+// │ The star is ALWAYS the LAST item INSIDE the scrolling departures content.   │
+// │ You reach it by scrolling to the bottom. It scrolls with the list.          │
+// │                                                                             │
+// │ It must NEVER be docked, pinned, floated, or placed in fixed screen space — │
+// │ not a bottom bar, not a chrome overlay, not a sibling below a weight(1f)/    │
+// │ fillMaxHeight column (that pins it). This applies to BOTH the single- and    │
+// │ multi-platform branches of DirectionList. This has been re-broken and re-    │
+// │ fixed many times; if a layout change tempts you to move it, don't.          │
+// └───────────────────────────────────────────────────────────────────────────┘
+
 @OptIn(ExperimentalWearFoundationApi::class)
 @Composable
 fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
     val context = LocalContext.current
     val repo = remember { DeparturesRepository() }
+    // How many upcoming departures to show per platform (user setting, 2..5, default 2).
+    val futureCount = remember { AppSettings.futureDepartures(context) }
     LaunchedEffect(Unit) { app.ensureLoaded(context) }
 
     // The route the user is riding (empty until the live termini match a pattern).
@@ -213,10 +229,13 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                             Box(Modifier.weight(1f).fillMaxWidth()) {
                                 if (isLoaded) {
                                     Loadable(
-                                        loader = { repo.departuresForLine(pageStop, line) },
+                                        loader = { repo.departuresForLine(pageStop, line, futureCount) },
                                         // Live refresh only for the stop on screen.
                                         refreshMs = if (isCurrent) 30_000 else 0,
                                         key = pageStop.diva,
+                                        // On the on-screen stop, refresh immediately on resume if the
+                                        // last load is >45s stale (the 30s loop is frozen while off).
+                                        refreshOnResumeAfterMs = if (isCurrent) 45_000 else 0,
                                         // Seed the opened stop's rebuilt page so the chain-resolve
                                         // rebuild doesn't re-flash the spinner.
                                         initial = if (pageStop.diva == stop.diva) openedUi else null,
@@ -569,23 +588,38 @@ private fun DirectionList(
 ) {
     val multi = page.platforms.size >= 2
 
-    // Single platform: just a couple of pills — static and centered, not scrollable. The
-    // pills center in the available space; the star sits at the bottom of the page.
+    // Single platform: the whole thing is ONE scrollable column. The pills + star center
+    // in the available space when they fit (a top spacer sized from the leftover space);
+    // once they overflow the viewport the leftover is 0 and the touch-scroll takes over.
+    // The star is the LAST item INSIDE the scroll content — reached by scrolling to the
+    // bottom. NEVER dock/pin/float it in fixed screen space (see the star rule in the
+    // file header / HANDOFF). The departures-count setting (up to 5) makes overflow real.
     if (!multi) {
+        val density = LocalDensity.current
+        var viewportPx by remember { mutableIntStateOf(0) }
+        var contentPx by remember { mutableIntStateOf(0) }
+        val padTop = with(density) { ((viewportPx - contentPx).coerceAtLeast(0) / 2).toDp() }
         Column(
-            modifier = Modifier.fillMaxSize().padding(bottom = 8.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 8.dp)
+                .onSizeChanged { viewportPx = it.height }
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Spacer(Modifier.height(padTop))
             Column(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(1.dp, Alignment.CenterVertically),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onSizeChanged { contentPx = it.height },
+                verticalArrangement = Arrangement.spacedBy(1.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 page.platforms.firstOrNull()?.departures?.forEach { dep ->
                     DepartureRow(dep, lineColor)
                 }
+                FavoriteStar(favorited, onToggleFavorite)
             }
-            FavoriteStar(favorited, onToggleFavorite)
         }
         return
     }

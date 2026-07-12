@@ -11,14 +11,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import android.os.SystemClock
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +54,9 @@ val RowSurface = Color(0xFF1E1E25)
  * inputs (e.g. crown = next stop) stays smooth.
  * [initial] seeds the content so the spinner is skipped when the caller already has a
  * value (e.g. this composable was just recreated and we don't want to re-flash).
+ * When [refreshOnResumeAfterMs] > 0, returning to the foreground (ON_RESUME) with the
+ * last successful load older than that many millis forces an immediate reload — the
+ * periodic loop is frozen while the screen is off, so this avoids showing stale data.
  */
 @Composable
 fun <T> Loadable(
@@ -56,21 +65,47 @@ fun <T> Loadable(
     refreshMs: Long = 0,
     key: Any? = Unit,
     initial: T? = null,
+    refreshOnResumeAfterMs: Long = 0,
     content: @Composable (T) -> Unit,
 ) {
     var attempt by remember { mutableIntStateOf(0) }
     var state by remember { mutableStateOf<Result<T>?>(initial?.let { Result.success(it) }) }
+    // Monotonic timestamp of the last successful load (0 = none yet); drives resume refresh.
+    var lastSuccessAt by remember { mutableLongStateOf(0L) }
     // refreshMs is a key so toggling live refresh (e.g. only the on-screen stop) restarts the loop.
     LaunchedEffect(attempt, key, refreshMs) {
         val result = runCatching { loader() }
         // Replace on success; on failure keep prior content unless there's none yet.
         if (result.isSuccess || state == null) state = result
+        if (result.isSuccess) lastSuccessAt = SystemClock.elapsedRealtime()
         if (refreshMs > 0) {
             while (true) {
                 delay(refreshMs)
                 val next = runCatching { loader() }
-                if (next.isSuccess) state = next // silent refresh; keep old on failure
+                if (next.isSuccess) {
+                    state = next // silent refresh; keep old on failure
+                    lastSuccessAt = SystemClock.elapsedRealtime()
+                }
             }
+        }
+    }
+    if (refreshOnResumeAfterMs > 0) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                // On resume, if the last good load is stale, reload now. Bumping `attempt`
+                // reuses the effect above: immediate load, then restart the periodic loop.
+                // addObserver replays ON_RESUME at registration; the >0 guard skips the
+                // first entry, which the LaunchedEffect already loads.
+                if (event == Lifecycle.Event.ON_RESUME &&
+                    lastSuccessAt > 0L &&
+                    SystemClock.elapsedRealtime() - lastSuccessAt >= refreshOnResumeAfterMs
+                ) {
+                    attempt++
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
         }
     }
     when (val s = state) {
