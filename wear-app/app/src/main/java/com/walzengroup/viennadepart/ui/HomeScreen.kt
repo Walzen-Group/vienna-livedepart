@@ -25,15 +25,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,9 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -154,25 +150,24 @@ private fun NearbyPage(
         return
     }
 
-    // With recents: the pill sits dead-center on the first screenful (equal top/bottom gaps,
-    // same 0.58 height as before). Overflow chips flow into the bottom gap so the first one
-    // peeks up as a scroll hint; Clear all is docked at the end of the scrolling list.
-    val density = LocalDensity.current
-    var hPx by remember { mutableFloatStateOf(0f) }
-    val scrollState = rememberScrollState()
+    // With recents: the pill sits dead-center on the first screenful (0.21 top gap + 0.58
+    // pill height, both fractions of the viewport). The "Recent" header and overflow chips
+    // flow below, so the first chip peeks up as a scroll hint; Clear all is docked at the
+    // end. It's a LazyColumn so the overflow chips beyond the visible one compose only as
+    // they scroll into view — swiping onto this page builds just the pill (+ peeking chip),
+    // not every recent at once. Layout is unchanged from the old verticalScroll version;
+    // the fillParentMaxHeight fractions replace the measure-then-size round-trip.
     // Long-press a recent (pill blob or chip) to bring up the remove confirm.
     var pendingDelete by remember { mutableStateOf<RecentStop?>(null) }
-    Box(Modifier.fillMaxSize().onSizeChanged { hPx = it.height.toFloat() }) {
-        if (hPx > 0f) {
-            val pillH = with(density) { (hPx * 0.58f).toDp() }
-            val topGap = with(density) { (hPx * 0.21f).toDp() }
-            Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(scrollState),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(Modifier.height(topGap))
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            item { Spacer(Modifier.fillParentMaxHeight(0.21f)) }
+            item {
                 Box(
-                    modifier = Modifier.fillMaxWidth().height(pillH),
+                    modifier = Modifier.fillMaxWidth().fillParentMaxHeight(0.58f),
                     contentAlignment = Alignment.Center,
                 ) {
                     SplitPill(
@@ -181,22 +176,30 @@ private fun NearbyPage(
                         modifier = Modifier.fillMaxWidth(0.92f).fillMaxHeight(),
                     )
                 }
-                if (recents.size > 2) {
+            }
+            if (recents.size > 2) {
+                item {
                     // top gap = bottom gap (4 here + the first chip's own 6dp top padding)
                     Text("Recent", color = MutedText, fontSize = 11.sp,
                         modifier = Modifier.padding(top = 10.dp, bottom = 4.dp))
                 }
                 recents.drop(2).forEach { r ->
-                    RecentChip(
-                        line = r.line, type = r.type, name = r.name,
-                        onOpen = { openRecent(r) },
-                        onLongPress = { pendingDelete = r },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
-                    )
+                    item(key = r.diva) {
+                        RecentChip(
+                            line = r.line, type = r.type, name = r.name,
+                            onOpen = { openRecent(r) },
+                            onLongPress = { pendingDelete = r },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
+                        )
+                    }
                 }
-                Spacer(Modifier.height(5.dp))
-                ClearAllButton(onClick = { app.clearRecents(context) })
-                Spacer(Modifier.height(8.dp))
+            }
+            item {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(Modifier.height(5.dp))
+                    ClearAllButton(onClick = { app.clearRecents(context) })
+                    Spacer(Modifier.height(8.dp))
+                }
             }
         }
         pendingDelete?.let { r ->

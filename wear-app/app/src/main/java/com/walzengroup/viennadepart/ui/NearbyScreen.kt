@@ -31,6 +31,7 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
+import com.walzengroup.viennadepart.data.RouteRepository
 import com.walzengroup.viennadepart.data.stops.PhysicalStop
 import com.walzengroup.viennadepart.data.stops.StopDistance
 import com.walzengroup.viennadepart.data.stops.StopRepository
@@ -71,7 +72,13 @@ fun NearbyScreen(
         loader = {
             val location = LocationProvider(context).current()
                 ?: error("Couldn't get your location. In the emulator open Extended controls → Location and send a point.")
-            StopRepository.nearest(context, location.latitude, location.longitude)
+            // Only surface stops that sit on a serviced route, so a located terminal loop /
+            // depot (no live route chain) never lands you on a dead departures pager. Falls
+            // back to all stops if the route data didn't load.
+            val serviced = RouteRepository.servicedDivas(context)
+            StopRepository.nearest(context, location.latitude, location.longitude) { stop ->
+                serviced.isEmpty() || stop.diva in serviced
+            }
         },
         loadingLabel = "Locating…",
     ) { nearby ->

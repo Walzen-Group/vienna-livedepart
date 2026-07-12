@@ -90,6 +90,17 @@ object RouteRepository {
         }
     }
 
+    /**
+     * Every DIVA that appears in any line's route — i.e. the stops we can actually build a
+     * live route chain for. Nearby uses this to skip physically-closer stops that aren't on
+     * a serviced route (terminal loops / depots the GTFS export dropped), so opening a located
+     * stop always lands on a working departures pager. Empty if the route data failed to load.
+     */
+    suspend fun servicedDivas(context: Context): Set<String> {
+        ensureLoaded(context.applicationContext)
+        return byLine?.values?.flatMapTo(HashSet()) { routes -> routes.flatMap { it.divas } } ?: emptySet()
+    }
+
     /** Drop parsed data so the next read reloads from the (possibly refreshed) file. */
     fun invalidate() {
         byLine = null

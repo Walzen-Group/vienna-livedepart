@@ -64,9 +64,16 @@ object StopRepository {
         divaLookup = null
     }
 
-    suspend fun nearest(context: Context, lat: Double, lon: Double, limit: Int = 12): List<StopDistance> {
+    suspend fun nearest(
+        context: Context,
+        lat: Double,
+        lon: Double,
+        limit: Int = 12,
+        keep: (PhysicalStop) -> Boolean = { true },
+    ): List<StopDistance> {
         val out = FloatArray(1)
         return stops(context)
+            .filter(keep)
             .map { s ->
                 Location.distanceBetween(lat, lon, s.centerLat, s.centerLon, out)
                 StopDistance(s, out[0])
