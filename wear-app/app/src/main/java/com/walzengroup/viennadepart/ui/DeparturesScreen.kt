@@ -79,6 +79,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import com.walzengroup.viennadepart.AppViewModel
 import com.walzengroup.viennadepart.R
+import com.walzengroup.viennadepart.data.AppSettings
 import com.walzengroup.viennadepart.data.DeparturesRepository
 import com.walzengroup.viennadepart.data.DeparturesUi
 import com.walzengroup.viennadepart.data.DepartureUi
@@ -99,6 +100,8 @@ import kotlinx.coroutines.launch
 fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
     val context = LocalContext.current
     val repo = remember { DeparturesRepository() }
+    // How many upcoming departures to show per platform (user setting, 2..5, default 2).
+    val futureCount = remember { AppSettings.futureDepartures(context) }
     LaunchedEffect(Unit) { app.ensureLoaded(context) }
 
     // The route the user is riding (empty until the live termini match a pattern).
@@ -213,10 +216,13 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                             Box(Modifier.weight(1f).fillMaxWidth()) {
                                 if (isLoaded) {
                                     Loadable(
-                                        loader = { repo.departuresForLine(pageStop, line) },
+                                        loader = { repo.departuresForLine(pageStop, line, futureCount) },
                                         // Live refresh only for the stop on screen.
                                         refreshMs = if (isCurrent) 30_000 else 0,
                                         key = pageStop.diva,
+                                        // On the on-screen stop, refresh immediately on resume if the
+                                        // last load is >45s stale (the 30s loop is frozen while off).
+                                        refreshOnResumeAfterMs = if (isCurrent) 45_000 else 0,
                                         // Seed the opened stop's rebuilt page so the chain-resolve
                                         // rebuild doesn't re-flash the spinner.
                                         initial = if (pageStop.diva == stop.diva) openedUi else null,

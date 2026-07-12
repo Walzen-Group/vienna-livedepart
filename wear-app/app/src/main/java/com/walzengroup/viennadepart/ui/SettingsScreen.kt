@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.InlineSlider
+import androidx.wear.compose.material.InlineSliderDefaults
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.ToggleChip
 import androidx.wear.compose.material.ToggleChipDefaults
@@ -56,6 +58,7 @@ fun SettingsPage() {
     var stopsDate by remember { mutableStateOf(TransitData.stopsDate(context)) }
     var routesDate by remember { mutableStateOf(TransitData.routesDate(context)) }
     var openToFavorites by remember { mutableStateOf(AppSettings.openToFavorites(context)) }
+    var futureCount by remember { mutableStateOf(AppSettings.futureDepartures(context)) }
 
     Column(
         modifier = Modifier
@@ -81,6 +84,22 @@ fun SettingsPage() {
                     contentDescription = if (openToFavorites) "On" else "Off",
                 )
             },
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(Modifier.height(14.dp))
+
+        Text("Future departures: $futureCount", fontSize = 13.sp)
+        Spacer(Modifier.height(6.dp))
+        InlineSlider(
+            value = futureCount,
+            onValueChange = {
+                futureCount = it
+                AppSettings.setFutureDepartures(context, it)
+            },
+            valueProgression = AppSettings.MIN_FUTURE_DEPARTURES..AppSettings.MAX_FUTURE_DEPARTURES,
+            decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Fewer") },
+            increaseIcon = { Icon(InlineSliderDefaults.Increase, "More") },
             modifier = Modifier.fillMaxWidth(),
         )
 

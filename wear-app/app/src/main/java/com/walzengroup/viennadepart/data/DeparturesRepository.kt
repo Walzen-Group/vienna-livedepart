@@ -42,7 +42,7 @@ class DeparturesRepository {
     }
 
     /** Next departures for one line at the stop, grouped by platform. */
-    suspend fun departuresForLine(stop: PhysicalStop, line: String): DeparturesUi {
+    suspend fun departuresForLine(stop: PhysicalStop, line: String, count: Int = 2): DeparturesUi {
         val response = cachedMonitor(stop.rbls)
         var lineType: String? = null
 
@@ -52,7 +52,7 @@ class DeparturesRepository {
             monitor.lines
                 .filter { it.name == line && it.name.isNotBlank() }
                 .map { l ->
-                    val departures = l.departures.departure.take(2).map { d ->
+                    val departures = l.departures.departure.take(count).map { d ->
                         val v = d.vehicle
                         if (lineType == null) lineType = v?.type
                         DepartureUi(
