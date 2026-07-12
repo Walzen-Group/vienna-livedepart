@@ -95,6 +95,19 @@ import com.walzengroup.viennadepart.ui.common.SquareBadge
 import com.walzengroup.viennadepart.ui.theme.ModeColor
 import kotlinx.coroutines.launch
 
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │ THE FAVORITE STAR RULE — do not violate, do not "improve" this away.        │
+// │                                                                             │
+// │ The star is ALWAYS the LAST item INSIDE the scrolling departures content.   │
+// │ You reach it by scrolling to the bottom. It scrolls with the list.          │
+// │                                                                             │
+// │ It must NEVER be docked, pinned, floated, or placed in fixed screen space — │
+// │ not a bottom bar, not a chrome overlay, not a sibling below a weight(1f)/    │
+// │ fillMaxHeight column (that pins it). This applies to BOTH the single- and    │
+// │ multi-platform branches of DirectionList. This has been re-broken and re-    │
+// │ fixed many times; if a layout change tempts you to move it, don't.          │
+// └───────────────────────────────────────────────────────────────────────────┘
+
 @OptIn(ExperimentalWearFoundationApi::class)
 @Composable
 fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
@@ -575,23 +588,38 @@ private fun DirectionList(
 ) {
     val multi = page.platforms.size >= 2
 
-    // Single platform: just a couple of pills — static and centered, not scrollable. The
-    // pills center in the available space; the star sits at the bottom of the page.
+    // Single platform: the whole thing is ONE scrollable column. The pills + star center
+    // in the available space when they fit (a top spacer sized from the leftover space);
+    // once they overflow the viewport the leftover is 0 and the touch-scroll takes over.
+    // The star is the LAST item INSIDE the scroll content — reached by scrolling to the
+    // bottom. NEVER dock/pin/float it in fixed screen space (see the star rule in the
+    // file header / HANDOFF). The departures-count setting (up to 5) makes overflow real.
     if (!multi) {
+        val density = LocalDensity.current
+        var viewportPx by remember { mutableIntStateOf(0) }
+        var contentPx by remember { mutableIntStateOf(0) }
+        val padTop = with(density) { ((viewportPx - contentPx).coerceAtLeast(0) / 2).toDp() }
         Column(
-            modifier = Modifier.fillMaxSize().padding(bottom = 8.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 8.dp)
+                .onSizeChanged { viewportPx = it.height }
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Spacer(Modifier.height(padTop))
             Column(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(1.dp, Alignment.CenterVertically),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onSizeChanged { contentPx = it.height },
+                verticalArrangement = Arrangement.spacedBy(1.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 page.platforms.firstOrNull()?.departures?.forEach { dep ->
                     DepartureRow(dep, lineColor)
                 }
+                FavoriteStar(favorited, onToggleFavorite)
             }
-            FavoriteStar(favorited, onToggleFavorite)
         }
         return
     }
