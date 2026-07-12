@@ -24,8 +24,8 @@ android {
         applicationId = "com.walzengroup.viennadepart"
         minSdk = 30            // Wear OS 3 (API 30) and up
         targetSdk = 34
-        versionCode = 5
-        versionName = "0.5"
+        versionCode = 6
+        versionName = "0.6"
     }
 
     signingConfigs {
