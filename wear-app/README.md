@@ -90,11 +90,49 @@ the build number 7×), turn on ADB + Wireless debugging, then on the computer
 Studio (or `adb install`) can then install to the watch. Grant location on first
 launch.
 
-For a signed sideload build, `./gradlew :app:assembleRelease` produces
-`app/build/outputs/apk/release/app-release.apk`. Signing reads
-`keystore.properties` (gitignored); without it the release build is left
-unsigned. Back up the keystore — a different signature forces an uninstall
-(wiping favorites / recents) on the next update.
+## Release build (signed, for a watch)
+
+The release APK is signed with the project's own key so it installs as an update
+over an existing install without wiping favorites / recents. Signing reads
+`keystore.properties` (gitignored) in `wear-app/`, which points at the keystore
+(default `vienna-release.jks`, also gitignored) and holds its passwords:
+
+```
+storeFile=vienna-release.jks
+storePassword=…
+keyAlias=vienna
+keyPassword=…
+```
+
+If `keystore.properties` is absent, the release build is left **unsigned**. If the
+keystore file it points at is missing, the build **fails** — restore it from your
+backup to `wear-app/vienna-release.jks` first. **Back up the keystore + passwords**:
+losing them means any future build gets a different signature, which forces an
+uninstall (wiping favorites / recents) before it can install.
+
+Build, then (optionally) verify the signer is the release key and not the debug key:
+
+```
+./gradlew :app:assembleRelease
+# → app/build/outputs/apk/release/app-release.apk
+
+# verify signature (apksigner is in the SDK build-tools)
+"$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs \
+  app/build/outputs/apk/release/app-release.apk
+# expect: CN=Vienna LiveDepart, O=Walzen Group, C=AT  (not CN=Android Debug)
+```
+
+Install to a connected watch (see "Run on a real watch" for pairing). Same
+signature, so `-r` updates in place:
+
+```
+adb devices                          # find the watch serial (ip:port or adb-…tls-connect)
+adb -s <watch-serial> install -r app/build/outputs/apk/release/app-release.apk
+```
+
+Bump `versionCode` (and usually `versionName`) in `app/build.gradle.kts` when you
+want the watch to treat the build as a proper update; `-r` also reinstalls the same
+versionCode in place for quick iteration.
 
 ## Command line
 
