@@ -116,9 +116,12 @@ Build, then (optionally) verify the signer is the release key and not the debug 
 ./gradlew :app:assembleRelease
 # → app/build/outputs/apk/release/app-release.apk
 
-# verify signature (apksigner is in the SDK build-tools)
-"$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs \
-  app/build/outputs/apk/release/app-release.apk
+# verify signature: apksigner lives in the SDK build-tools. ANDROID_HOME isn't
+# always exported, so fall back to the default macOS SDK path, and pick the
+# newest build-tools so the glob resolves to a single binary.
+SDK="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+"$(ls -d "$SDK"/build-tools/*/apksigner | sort -V | tail -1)" \
+  verify --print-certs app/build/outputs/apk/release/app-release.apk
 # expect: CN=Vienna LiveDepart, O=Walzen Group, C=AT  (not CN=Android Debug)
 ```
 
