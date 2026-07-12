@@ -25,15 +25,39 @@ create/close work items, move states, add them to the right module.
 
 ## Build / run (Wear emulator)
 
-From `wear-app/` in **PowerShell** (a hook redirects build commands away from the
-Bash tool). Always `am force-stop` before launch so the new APK's process restarts:
+The project builds on **both** Sam's machines. `emulator-5554` is the Wear
+emulator; a real watch also connects over wireless adb (e.g.
+`10.188.237.195:33151`), so pass `-s emulator-5554` to target the emulator. Always
+`am force-stop` before launch so the new APK's process restarts. A hook redirects
+`gradlew`/build commands away from the Bash tool — run them via
+`mcp__plugin_context-mode_context-mode__ctx_execute(language: "shell", ...)` and
+pipe through `grep`/`tail` so only the result lines come back (`adb` runs fine
+either way). Filter build output for `error:|BUILD|FAILED|e: `.
+
+**macOS + nix** (this shell): `adb`, `java` (Zulu JDK 17), and the Gradle wrapper
+are on `PATH` from the nix env; `local.properties` points at
+`/Users/sam/Library/Android/sdk`.
 
 ```
-./gradlew.bat :app:assembleDebug          # filter: error:|BUILD|FAILED|e:
+./gradlew :app:assembleDebug
+adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
+adb -s emulator-5554 shell am force-stop com.walzengroup.viennadepart
+adb -s emulator-5554 shell am start -n com.walzengroup.viennadepart/.MainActivity
+```
+
+**Windows + PowerShell** (adb at `C:\adb\adb.exe`):
+
+```
+./gradlew.bat :app:assembleDebug
 C:\adb\adb.exe -s emulator-5554 install -r app\build\outputs\apk\debug\app-debug.apk
 C:\adb\adb.exe -s emulator-5554 shell am force-stop com.walzengroup.viennadepart
 C:\adb\adb.exe -s emulator-5554 shell am start -n com.walzengroup.viennadepart/.MainActivity
 ```
 
 Set the emulator location (needed for Nearby / favorites) — clears on reboot:
-`C:\adb\adb.exe -s emulator-5554 emu geo fix 16.3726 48.2088` (Stephansplatz).
+`adb -s emulator-5554 emu geo fix 16.3726 48.2088` (Stephansplatz; `C:\adb\adb.exe`
+on Windows). Screenshot: `adb -s emulator-5554 exec-out screencap -p > shot.png`.
+
+If `./gradlew <task>` fails with `Could not find or load main class <task>`, the
+wrapper script is corrupted — regenerate it with
+`java -classpath gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain wrapper`.
