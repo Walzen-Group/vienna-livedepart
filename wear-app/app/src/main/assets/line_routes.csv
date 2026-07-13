@@ -1,4 +1,4 @@
-#generated=2026-07-11
+#generated=2026-07-13
 line;headsign;seq;diva
 1;Bösendorferstraße/Karlsplatz;0;60200486
 1;Bösendorferstraße/Karlsplatz;1;60201497
@@ -1126,6 +1126,29 @@ line;headsign;seq;diva
 18;St. Marx;14;60200400
 18;St. Marx;15;60201486
 18;St. Marx;16;60201425
+18;Stadion;0;60200188
+18;Stadion;1;60201413
+18;Stadion;2;60201468
+18;Stadion;3;60200833
+18;Stadion;4;60200436
+18;Stadion;5;60200827
+18;Stadion;6;60200077
+18;Stadion;7;60200267
+18;Stadion;8;60200849
+18;Stadion;9;60200689
+18;Stadion;10;60200145
+18;Stadion;11;60201349
+18;Stadion;12;60201346
+18;Stadion;13;60200300
+18;Stadion;14;60200400
+18;Stadion;15;60201486
+18;Stadion;16;60201425
+18;Stadion;17;60201148
+18;Stadion;18;60200115
+18;Stadion;19;60201199
+18;Stadion;20;60200821
+18;Stadion;21;60201296
+18;Stadion;22;60201894
 18;Winckelmannstraße;0;60201199
 18;Winckelmannstraße;1;60200821
 18;Winckelmannstraße;2;60201199
@@ -2481,6 +2504,11 @@ line;headsign;seq;diva
 36B;Leopoldau;16;60201884
 36B;Leopoldau;17;60201885
 36B;Leopoldau;18;60200769
+36B;Petritschgasse;0;60200769
+36B;Petritschgasse;1;60201885
+36B;Petritschgasse;2;60201884
+36B;Petritschgasse;3;60201886
+36B;Petritschgasse;4;60201887
 37;Gersthof, Herbeckstraße;0;60200540
 37;Gersthof, Herbeckstraße;1;60201008
 37;Gersthof, Herbeckstraße;2;60200109
@@ -3108,6 +3136,12 @@ line;headsign;seq;diva
 43A;Dornbach;1;60200525
 43A;Dornbach;2;60200241
 43A;Dornbach;3;60200450
+43A;Hernals, Wattgasse;0;60200935
+43A;Hernals, Wattgasse;1;60200525
+43A;Hernals, Wattgasse;2;60200241
+43A;Hernals, Wattgasse;3;60200450
+43A;Hernals, Wattgasse;4;60200505
+43A;Hernals, Wattgasse;5;60200508
 43A;Neuwaldegg;0;60200521
 43A;Neuwaldegg;1;60201246
 43A;Neuwaldegg;2;60200672
@@ -5754,8 +5788,7 @@ line;headsign;seq;diva
 77A;Donaumarina;2;60200282
 77A;Ernst-Happel-Stadion;0;60201199
 77A;Ernst-Happel-Stadion;1;60200821
-77A;Ernst-Happel-Stadion;2;60201568
-77A;Ernst-Happel-Stadion;3;60201296
+77A;Ernst-Happel-Stadion;2;60201296
 77A;Lusthaus;0;60201091
 77A;Lusthaus;1;60200346
 77A;Lusthaus;2;60200292
@@ -5784,22 +5817,20 @@ line;headsign;seq;diva
 77A;Rennweg;7;60201895
 77A;Rennweg;8;60201894
 77A;Rennweg;9;60201296
-77A;Rennweg;10;60201568
-77A;Rennweg;11;60200821
-77A;Rennweg;12;60201199
-77A;Rennweg;13;60200283
-77A;Rennweg;14;60200765
-77A;Rennweg;15;60200653
-77A;Rennweg;16;60201061
-77A;Rennweg;17;60201694
-77A;Rennweg;18;60200461
-77A;Rennweg;19;60200688
-77A;Rennweg;20;60201091
+77A;Rennweg;10;60200821
+77A;Rennweg;11;60201199
+77A;Rennweg;12;60200283
+77A;Rennweg;13;60200765
+77A;Rennweg;14;60200653
+77A;Rennweg;15;60201061
+77A;Rennweg;16;60201694
+77A;Rennweg;17;60200461
+77A;Rennweg;18;60200688
+77A;Rennweg;19;60201091
 77A;Schlachthausgasse;0;60201894
 77A;Schlachthausgasse;1;60201296
-77A;Schlachthausgasse;2;60201568
-77A;Schlachthausgasse;3;60200821
-77A;Schlachthausgasse;4;60201199
+77A;Schlachthausgasse;2;60200821
+77A;Schlachthausgasse;3;60201199
 77A;Stadlauer Brücke;0;60201091
 77A;Stadlauer Brücke;1;60200346
 77A;Stadlauer Brücke;2;60200292
@@ -5810,14 +5841,13 @@ line;headsign;seq;diva
 77A;Stadlauer Brücke;7;60200283
 77A;Stadlauer Brücke;8;60201199
 77A;Stadlauer Brücke;9;60200821
-77A;Stadlauer Brücke;10;60201568
-77A;Stadlauer Brücke;11;60201296
-77A;Stadlauer Brücke;12;60201894
-77A;Stadlauer Brücke;13;60201895
-77A;Stadlauer Brücke;14;60200282
-77A;Stadlauer Brücke;15;60201039
-77A;Stadlauer Brücke;16;60201896
-77A;Stadlauer Brücke;17;60201874
+77A;Stadlauer Brücke;10;60201296
+77A;Stadlauer Brücke;11;60201894
+77A;Stadlauer Brücke;12;60201895
+77A;Stadlauer Brücke;13;60200282
+77A;Stadlauer Brücke;14;60201039
+77A;Stadlauer Brücke;15;60201896
+77A;Stadlauer Brücke;16;60201874
 79A;Donaumarina, Chrastekgasse;0;60200907
 79A;Donaumarina, Chrastekgasse;1;60200639
 79A;Donaumarina, Chrastekgasse;2;60200087
@@ -7379,24 +7409,25 @@ N35;Nußdorfer Straße;14;60200376
 N35;Nußdorfer Straße;15;60200474
 N35;Nußdorfer Straße;16;60200405
 N35;Nußdorfer Straße;17;60200950
-N35;Salmannsdorf;0;60200950
-N35;Salmannsdorf;1;60201462
-N35;Salmannsdorf;2;60201509
-N35;Salmannsdorf;3;60200474
-N35;Salmannsdorf;4;60200376
-N35;Salmannsdorf;5;60200723
-N35;Salmannsdorf;6;60200336
-N35;Salmannsdorf;7;60201108
-N35;Salmannsdorf;8;60200714
-N35;Salmannsdorf;9;60200443
-N35;Salmannsdorf;10;60200404
-N35;Salmannsdorf;11;60200648
-N35;Salmannsdorf;12;60201336
-N35;Salmannsdorf;13;60200687
-N35;Salmannsdorf;14;60200010
-N35;Salmannsdorf;15;60200931
-N35;Salmannsdorf;16;60200206
-N35;Salmannsdorf;17;60201142
+N35;Salmannsdorf;0;60201062
+N35;Salmannsdorf;1;60200950
+N35;Salmannsdorf;2;60201462
+N35;Salmannsdorf;3;60201509
+N35;Salmannsdorf;4;60200474
+N35;Salmannsdorf;5;60200376
+N35;Salmannsdorf;6;60200723
+N35;Salmannsdorf;7;60200336
+N35;Salmannsdorf;8;60201108
+N35;Salmannsdorf;9;60200714
+N35;Salmannsdorf;10;60200443
+N35;Salmannsdorf;11;60200404
+N35;Salmannsdorf;12;60200648
+N35;Salmannsdorf;13;60201336
+N35;Salmannsdorf;14;60200687
+N35;Salmannsdorf;15;60200010
+N35;Salmannsdorf;16;60200931
+N35;Salmannsdorf;17;60200206
+N35;Salmannsdorf;18;60201142
 N36;Nußdorf;0;60200950
 N36;Nußdorf;1;60200786
 N36;Nußdorf;2;60201062
