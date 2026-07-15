@@ -30,10 +30,13 @@ object RouteRepository {
     private val chainCache = ConcurrentHashMap<String, List<PhysicalStop>>()
 
     /**
-     * Ordered physical stops along [lineName] for the route matching one of the live
-     * [termini] (the monitor `towards` labels). Prefers a matching route that contains
-     * [currentDiva] (the opened stop), then the longest; falls back to the longest
-     * route that contains the stop, then the longest overall.
+     * Ordered physical stops along [lineName] for the crown's stop strip. The live [termini]
+     * (monitor `towards` labels) only pick the *direction* among the line's primary routes; they
+     * never shrink the strip. Without this, a short-turn service (e.g. line 44 running only to
+     * Joachimsthalerplatz at night) would collapse the strip to those few stops, hiding the rest
+     * of the usual daytime line. So we match termini only against primary routes (at least half as
+     * long as the longest), and fall back to the longest route containing [currentDiva]. Prefers a
+     * matching primary route that contains the opened stop, then the longest.
      */
     suspend fun chainFor(
         context: Context,
@@ -57,19 +60,36 @@ object RouteRepository {
                 val h = normalize(r.headsign)
                 return termNorms.any { it.contains(h) || h.contains(it) }
             }
-            val matching = routes.filter { matchesTerminus(it) }
-            val chosen = matching.filter { currentDiva in it.divas }.maxByOrNull { it.divas.size }
-                ?: matching.maxByOrNull { it.divas.size }
-                ?: routes.filter { currentDiva in it.divas }.maxByOrNull { it.divas.size }
-                ?: routes.maxByOrNull { it.divas.size }
-                ?: return@withContext emptyList<PhysicalStop>()
-            chosen.divas.mapNotNull { StopRepository.stopForDiva(context, it) }
+            val maxLen = routes.maxOf { it.divas.size }
+            fun isPrimary(r: Route) = r.divas.size * 2 >= maxLen
+
+            // Backbone: a primary route — direction-matched to the live termini and containing the
+            // opened stop when possible, else the longest primary, else the longest overall. Short
+            // variants never form the backbone, so a short-turn can't shrink the line.
+            val backbone =
+                routes.filter { isPrimary(it) && matchesTerminus(it) && currentDiva in it.divas }.maxByOrNull { it.divas.size }
+                    ?: routes.filter { isPrimary(it) && matchesTerminus(it) }.maxByOrNull { it.divas.size }
+                    ?: routes.filter { isPrimary(it) && currentDiva in it.divas }.maxByOrNull { it.divas.size }
+                    ?: routes.filter { isPrimary(it) }.maxByOrNull { it.divas.size }
+                    ?: routes.maxByOrNull { it.divas.size }
+                    ?: return@withContext emptyList<PhysicalStop>()
+
+            // Splice on any short-turn/extension that is actually running now — its headsign is a
+            // live terminus — and that meets the backbone at an endpoint (e.g. line 44's night
+            // shuttle out to the Joachimsthalerplatz depot siding). This keeps those stops crown-
+            // reachable while the run is active, whichever stop you open, without letting them into
+            // the line's normal shape (stop-picking and the static seed stay primary-only).
+            var seq = backbone.divas
+            for (ext in routes) {
+                if (!isPrimary(ext) && matchesTerminus(ext)) seq = spliceExtension(seq, ext.divas)
+            }
+            seq.mapNotNull { StopRepository.stopForDiva(context, it) }
         }
         chainCache[cacheKey] = chain
         return chain
     }
 
-    /** The stop closest to (lat, lon) among all stops [lineName] serves; null if unknown. */
+    /** The stop closest to (lat, lon) among the stops on [lineName]'s primary routes; null if unknown. */
     suspend fun nearestStopOnLine(
         context: Context,
         lineName: String,
@@ -79,7 +99,14 @@ object RouteRepository {
         ensureLoaded(context.applicationContext)
         val routes = byLine?.get(lineName).orEmpty()
         if (routes.isEmpty()) return null
-        val divas = routes.flatMapTo(HashSet()) { it.divas }
+        // Only consider stops on the line's primary routes. The GTFS export gives many lines a
+        // tiny extra variant (short-turn, depot run, SEV replacement) under its own headsign that
+        // carries a stop or two the line barely serves — e.g. line 44's 3-stop "Joachimsthalerplatz"
+        // variant. Searching the union of every variant's stops can land a favorite on such a
+        // phantom stop, which then shows no departures. Keep only routes at least half as long as
+        // the longest, so those short variants drop out.
+        val maxLen = routes.maxOf { it.divas.size }
+        val divas = routes.filter { it.divas.size * 2 >= maxLen }.flatMapTo(HashSet()) { it.divas }
         return withContext(Dispatchers.Default) {
             val out = FloatArray(1)
             divas.mapNotNull { StopRepository.stopForDiva(context, it) }
@@ -87,6 +114,21 @@ object RouteRepository {
                     Location.distanceBetween(lat, lon, s.centerLat, s.centerLon, out)
                     out[0]
                 }
+        }
+    }
+
+    /**
+     * The line's canonical stop path — its longest route — resolved straight from the bundled
+     * route data with no dependency on live departures. Used to seed the crown's stop strip the
+     * moment a departures screen opens, so the crown works even at a stop with no live monitors
+     * (e.g. a favorite that landed on a stop the line barely serves). [chainFor] later refines
+     * this to the correct direction once live termini arrive. Empty if the line is unknown.
+     */
+    suspend fun mainChain(context: Context, lineName: String): List<PhysicalStop> {
+        ensureLoaded(context.applicationContext)
+        val chosen = byLine?.get(lineName)?.maxByOrNull { it.divas.size } ?: return emptyList()
+        return withContext(Dispatchers.Default) {
+            chosen.divas.mapNotNull { StopRepository.stopForDiva(context, it) }
         }
     }
 
@@ -144,5 +186,29 @@ object RouteRepository {
         var t = s.trim().lowercase()
         for ((a, b) in listOf("ä" to "ae", "ö" to "oe", "ü" to "ue", "ß" to "ss")) t = t.replace(a, b)
         return t
+    }
+
+    /**
+     * Attach [ext]'s new stops to [base] when the two meet at an endpoint, so an active short-turn
+     * extends the strip past the terminus it branches from. The extension is oriented to its shared
+     * stop and its remaining stops are appended (or prepended, if it branches off the start).
+     * Returns [base] unchanged when they don't meet at an endpoint, so a mid-line branch or an
+     * unrelated spur can't distort the line.
+     */
+    private fun spliceExtension(base: List<String>, ext: List<String>): List<String> {
+        if (base.isEmpty() || ext.isEmpty()) return base
+        val oriented = when {
+            ext.first() in base -> ext
+            ext.last() in base -> ext.reversed()
+            else -> return base
+        }
+        val shared = oriented.first()
+        val tail = oriented.drop(1).filter { it !in base }
+        if (tail.isEmpty()) return base
+        return when (shared) {
+            base.last() -> base + tail
+            base.first() -> tail.reversed() + base
+            else -> base
+        }
     }
 }

@@ -15,6 +15,10 @@ class DeparturesRepository {
 
     private companion object {
         val CLOCK: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+        // Wiener Linien sends the offset colon-less ("+0200"), which the default ISO parser rejects.
+        // `xx` accepts that form; millis are optional. Parsing this (not the device clock) is what
+        // makes the shown departure time correct even when the device clock is off.
+        val WL_TIMESTAMP: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS]xx")
     }
 
     /** Distinct lines currently at the stop, each with its destinations. */
@@ -99,7 +103,7 @@ class DeparturesRepository {
     // Wall-clock departure time as "HH:mm", from the API's ISO timestamp when present,
     // else derived from the countdown against the current time.
     private fun departureClock(iso: String?, countdownMin: Int): String = try {
-        val t = if (iso != null) OffsetDateTime.parse(iso).toLocalTime()
+        val t = if (iso != null) OffsetDateTime.parse(iso, WL_TIMESTAMP).toLocalTime()
         else LocalTime.now().plusMinutes(countdownMin.toLong())
         t.format(CLOCK)
     } catch (e: Exception) {

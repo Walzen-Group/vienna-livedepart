@@ -124,10 +124,25 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
     // chain resolves and rebuilds the pager, its page seeds from this instead of re-flashing
     // the spinner.
     var openedUi by remember(stop.diva, line) { mutableStateOf<DeparturesUi?>(null) }
-    // Stops to crown through: the matched chain if it includes this stop, else just it.
+    // Stops to crown through. The chain is the line's stop strip (resolved below). If it includes
+    // the opened stop, crown through it as-is. If the opened stop is off the line (a wrong/phantom
+    // stop was picked), keep it at the front but still append the whole line, so the crown always
+    // works and can step into the real line. Only when no chain resolves at all do we fall back to
+    // the lone stop.
     val stops = remember(chain, stop.diva) {
-        val idx = chain.indexOfFirst { it.diva == stop.diva }
-        if (idx >= 0) chain else listOf(stop)
+        when {
+            chain.any { it.diva == stop.diva } -> chain
+            chain.isNotEmpty() -> listOf(stop) + chain
+            else -> listOf(stop)
+        }
+    }
+
+    // Seed the crown's stop strip from the bundled route data the moment the screen opens, without
+    // waiting for live departures. A stop with no monitors (e.g. a favorite opened onto a stop the
+    // line barely serves) would otherwise never build a chain, and the crown would be dead. Live
+    // termini refine this to the right direction below.
+    LaunchedEffect(line, stop.diva) {
+        if (chain.isEmpty()) chain = RouteRepository.mainChain(context, line)
     }
 
     // Recreate the pager when the stop list resolves (empty -> full chain).
@@ -250,10 +265,20 @@ fun DeparturesScreen(stop: PhysicalStop, line: String, app: AppViewModel) {
                                         LaunchedEffect(pageStop.diva, ui.lineType) {
                                             app.addRecent(context, pageStop, line, ui.lineType)
                                         }
+                                        // Refine the seeded chain to the route the opened stop's live
+                                        // termini match. Only the opened stop drives this, and we
+                                        // replace only when the matched route covers a different set of
+                                        // stops (a branch, or the opened stop wasn't on the seed) so an
+                                        // equal chain doesn't needlessly rebuild the pager.
                                         val termini = ui.directions.map { it.label }
                                         LaunchedEffect(termini) {
-                                            if (chain.isEmpty() && termini.isNotEmpty()) {
-                                                chain = RouteRepository.chainFor(context, line, termini, stop.diva)
+                                            if (pageStop.diva == stop.diva && termini.isNotEmpty()) {
+                                                val refined = RouteRepository.chainFor(context, line, termini, stop.diva)
+                                                if (refined.isNotEmpty() &&
+                                                    refined.mapTo(HashSet()) { it.diva } != chain.mapTo(HashSet()) { it.diva }
+                                                ) {
+                                                    chain = refined
+                                                }
                                             }
                                         }
                                         DeparturesBody(ui, app)
