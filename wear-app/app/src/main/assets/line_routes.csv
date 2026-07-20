@@ -1,4 +1,4 @@
-#generated=2026-07-13
+#generated=2026-07-20
 line;headsign;seq;diva
 1;Bösendorferstraße/Karlsplatz;0;60200486
 1;Bösendorferstraße/Karlsplatz;1;60201497
@@ -1126,29 +1126,6 @@ line;headsign;seq;diva
 18;St. Marx;14;60200400
 18;St. Marx;15;60201486
 18;St. Marx;16;60201425
-18;Stadion;0;60200188
-18;Stadion;1;60201413
-18;Stadion;2;60201468
-18;Stadion;3;60200833
-18;Stadion;4;60200436
-18;Stadion;5;60200827
-18;Stadion;6;60200077
-18;Stadion;7;60200267
-18;Stadion;8;60200849
-18;Stadion;9;60200689
-18;Stadion;10;60200145
-18;Stadion;11;60201349
-18;Stadion;12;60201346
-18;Stadion;13;60200300
-18;Stadion;14;60200400
-18;Stadion;15;60201486
-18;Stadion;16;60201425
-18;Stadion;17;60201148
-18;Stadion;18;60200115
-18;Stadion;19;60201199
-18;Stadion;20;60200821
-18;Stadion;21;60201296
-18;Stadion;22;60201894
 18;Winckelmannstraße;0;60201199
 18;Winckelmannstraße;1;60200821
 18;Winckelmannstraße;2;60201199
@@ -4838,22 +4815,22 @@ line;headsign;seq;diva
 62A;Liesing;13;60200774
 62A;Liesing;14;60200247
 62A;Liesing;15;60200788
-62A;Meidling, Eichenstr.;0;60200788
-62A;Meidling, Eichenstr.;1;60200247
-62A;Meidling, Eichenstr.;2;60200774
-62A;Meidling, Eichenstr.;3;60200174
-62A;Meidling, Eichenstr.;4;60200199
-62A;Meidling, Eichenstr.;5;60201935
-62A;Meidling, Eichenstr.;6;60200728
-62A;Meidling, Eichenstr.;7;60200421
-62A;Meidling, Eichenstr.;8;60200679
-62A;Meidling, Eichenstr.;9;60201799
-62A;Meidling, Eichenstr.;10;60200035
-62A;Meidling, Eichenstr.;11;60201276
-62A;Meidling, Eichenstr.;12;60201477
-62A;Meidling, Eichenstr.;13;60201160
-62A;Meidling, Eichenstr.;14;60201015
-62A;Meidling, Eichenstr.;15;60201262
+62A;Meidling, Eichenstraße;0;60200788
+62A;Meidling, Eichenstraße;1;60200247
+62A;Meidling, Eichenstraße;2;60200774
+62A;Meidling, Eichenstraße;3;60200174
+62A;Meidling, Eichenstraße;4;60200199
+62A;Meidling, Eichenstraße;5;60201935
+62A;Meidling, Eichenstraße;6;60200728
+62A;Meidling, Eichenstraße;7;60200421
+62A;Meidling, Eichenstraße;8;60200679
+62A;Meidling, Eichenstraße;9;60201799
+62A;Meidling, Eichenstraße;10;60200035
+62A;Meidling, Eichenstraße;11;60201276
+62A;Meidling, Eichenstraße;12;60201477
+62A;Meidling, Eichenstraße;13;60201160
+62A;Meidling, Eichenstraße;14;60201015
+62A;Meidling, Eichenstraße;15;60201262
 63A;Am Rosenhügel;0;60200053
 63A;Am Rosenhügel;1;60200264
 63A;Am Rosenhügel;2;60201683
@@ -5788,7 +5765,8 @@ line;headsign;seq;diva
 77A;Donaumarina;2;60200282
 77A;Ernst-Happel-Stadion;0;60201199
 77A;Ernst-Happel-Stadion;1;60200821
-77A;Ernst-Happel-Stadion;2;60201296
+77A;Ernst-Happel-Stadion;2;60201568
+77A;Ernst-Happel-Stadion;3;60201296
 77A;Lusthaus;0;60201091
 77A;Lusthaus;1;60200346
 77A;Lusthaus;2;60200292
@@ -5817,20 +5795,22 @@ line;headsign;seq;diva
 77A;Rennweg;7;60201895
 77A;Rennweg;8;60201894
 77A;Rennweg;9;60201296
-77A;Rennweg;10;60200821
-77A;Rennweg;11;60201199
-77A;Rennweg;12;60200283
-77A;Rennweg;13;60200765
-77A;Rennweg;14;60200653
-77A;Rennweg;15;60201061
-77A;Rennweg;16;60201694
-77A;Rennweg;17;60200461
-77A;Rennweg;18;60200688
-77A;Rennweg;19;60201091
+77A;Rennweg;10;60201568
+77A;Rennweg;11;60200821
+77A;Rennweg;12;60201199
+77A;Rennweg;13;60200283
+77A;Rennweg;14;60200765
+77A;Rennweg;15;60200653
+77A;Rennweg;16;60201061
+77A;Rennweg;17;60201694
+77A;Rennweg;18;60200461
+77A;Rennweg;19;60200688
+77A;Rennweg;20;60201091
 77A;Schlachthausgasse;0;60201894
 77A;Schlachthausgasse;1;60201296
-77A;Schlachthausgasse;2;60200821
-77A;Schlachthausgasse;3;60201199
+77A;Schlachthausgasse;2;60201568
+77A;Schlachthausgasse;3;60200821
+77A;Schlachthausgasse;4;60201199
 77A;Stadlauer Brücke;0;60201091
 77A;Stadlauer Brücke;1;60200346
 77A;Stadlauer Brücke;2;60200292
@@ -5841,13 +5821,14 @@ line;headsign;seq;diva
 77A;Stadlauer Brücke;7;60200283
 77A;Stadlauer Brücke;8;60201199
 77A;Stadlauer Brücke;9;60200821
-77A;Stadlauer Brücke;10;60201296
-77A;Stadlauer Brücke;11;60201894
-77A;Stadlauer Brücke;12;60201895
-77A;Stadlauer Brücke;13;60200282
-77A;Stadlauer Brücke;14;60201039
-77A;Stadlauer Brücke;15;60201896
-77A;Stadlauer Brücke;16;60201874
+77A;Stadlauer Brücke;10;60201568
+77A;Stadlauer Brücke;11;60201296
+77A;Stadlauer Brücke;12;60201894
+77A;Stadlauer Brücke;13;60201895
+77A;Stadlauer Brücke;14;60200282
+77A;Stadlauer Brücke;15;60201039
+77A;Stadlauer Brücke;16;60201896
+77A;Stadlauer Brücke;17;60201874
 79A;Donaumarina, Chrastekgasse;0;60200907
 79A;Donaumarina, Chrastekgasse;1;60200639
 79A;Donaumarina, Chrastekgasse;2;60200087
@@ -6232,19 +6213,19 @@ line;headsign;seq;diva
 8A;Küniglberg/ORF-Zentrum;12;60200888
 8A;Küniglberg/ORF-Zentrum;13;60200303
 8A;Küniglberg/ORF-Zentrum;14;60200953
-8A;Meidling, Eichenstr.;0;60200953
-8A;Meidling, Eichenstr.;1;60200888
-8A;Meidling, Eichenstr.;2;60200690
-8A;Meidling, Eichenstr.;3;60200037
-8A;Meidling, Eichenstr.;4;60201383
-8A;Meidling, Eichenstr.;5;60200381
-8A;Meidling, Eichenstr.;6;60201464
-8A;Meidling, Eichenstr.;7;60200543
-8A;Meidling, Eichenstr.;8;60201801
-8A;Meidling, Eichenstr.;9;60201376
-8A;Meidling, Eichenstr.;10;60200542
-8A;Meidling, Eichenstr.;11;60201015
-8A;Meidling, Eichenstr.;12;60201262
+8A;Meidling, Eichenstraße;0;60200953
+8A;Meidling, Eichenstraße;1;60200888
+8A;Meidling, Eichenstraße;2;60200690
+8A;Meidling, Eichenstraße;3;60200037
+8A;Meidling, Eichenstraße;4;60201383
+8A;Meidling, Eichenstraße;5;60200381
+8A;Meidling, Eichenstraße;6;60201464
+8A;Meidling, Eichenstraße;7;60200543
+8A;Meidling, Eichenstraße;8;60201801
+8A;Meidling, Eichenstraße;9;60201376
+8A;Meidling, Eichenstraße;10;60200542
+8A;Meidling, Eichenstraße;11;60201015
+8A;Meidling, Eichenstraße;12;60201262
 9;Antonigasse;0;60201468
 9;Antonigasse;1;60201413
 9;Antonigasse;2;60200458
