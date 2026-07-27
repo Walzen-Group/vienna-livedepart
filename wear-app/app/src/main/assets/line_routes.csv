@@ -1,4 +1,4 @@
-#generated=2026-07-20
+#generated=2026-07-27
 line;headsign;seq;diva
 1;Bösendorferstraße/Karlsplatz;0;60200486
 1;Bösendorferstraße/Karlsplatz;1;60201497
@@ -4122,6 +4122,13 @@ line;headsign;seq;diva
 57A;Burgring;13;60201812
 57A;Burgring;14;60200396
 57A;Burgring;15;60200190
+57A;Gumpendorfer Straße;0;60200067
+57A;Gumpendorfer Straße;1;60201459
+57A;Gumpendorfer Straße;2;60200545
+57A;Gumpendorfer Straße;3;60200159
+57A;Gumpendorfer Straße;4;60201324
+57A;Gumpendorfer Straße;5;60200052
+57A;Gumpendorfer Straße;6;60200436
 57A;Pilgramgasse;0;60200067
 57A;Pilgramgasse;1;60201459
 57A;Pilgramgasse;2;60200545
@@ -7492,6 +7499,16 @@ N41;Schottentor;10;60201288
 N41;Schottentor;11;60201226
 N41;Schottentor;12;60201197
 N41;Schottentor;13;60201184
+N43;Hernals, Wattgasse;0;60201184
+N43;Hernals, Wattgasse;1;60200742
+N43;Hernals, Wattgasse;2;60200747
+N43;Hernals, Wattgasse;3;60201267
+N43;Hernals, Wattgasse;4;60200178
+N43;Hernals, Wattgasse;5;60200027
+N43;Hernals, Wattgasse;6;60200988
+N43;Hernals, Wattgasse;7;60200276
+N43;Hernals, Wattgasse;8;60201115
+N43;Hernals, Wattgasse;9;60200508
 N43;Neuwaldegg;0;60201184
 N43;Neuwaldegg;1;60200742
 N43;Neuwaldegg;2;60200747
