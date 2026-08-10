@@ -1,4 +1,4 @@
-#generated=2026-08-03
+#generated=2026-08-10
 line;headsign;seq;diva
 1;Bösendorferstraße/Karlsplatz;0;60200486
 1;Bösendorferstraße/Karlsplatz;1;60201497
@@ -1959,6 +1959,12 @@ line;headsign;seq;diva
 29B;Großfeldsiedlung;17;60200454
 29B;Großfeldsiedlung;18;60201451
 29B;Großfeldsiedlung;19;60201859
+2A;Obere Augartenstraße;0;60201320
+2A;Obere Augartenstraße;1;60201119
+2A;Obere Augartenstraße;2;60201198
+2A;Obere Augartenstraße;3;60201365
+2A;Obere Augartenstraße;4;60200824
+2A;Obere Augartenstraße;5;60200961
 2A;Schwarzenbergplatz;0;60201198
 2A;Schwarzenbergplatz;1;60201145
 2A;Schwarzenbergplatz;2;60201129
@@ -1979,6 +1985,15 @@ line;headsign;seq;diva
 2A;Schwedenplatz;7;60201320
 2A;Schwedenplatz;8;60201119
 2A;Schwedenplatz;9;60201198
+2A;Stephansplatz;0;60200961
+2A;Stephansplatz;1;60201431
+2A;Stephansplatz;2;60200824
+2A;Stephansplatz;3;60201365
+2A;Stephansplatz;4;60201145
+2A;Stephansplatz;5;60201144
+2A;Stephansplatz;6;60200544
+2A;Stephansplatz;7;60200157
+2A;Stephansplatz;8;60201320
 30;Floridsdorf;0;60201308
 30;Floridsdorf;1;60201419
 30;Floridsdorf;2;60200132
@@ -2791,6 +2806,16 @@ line;headsign;seq;diva
 39B;Karthäuserstraße;1;60200660
 39B;Sieveringer Friedhof;0;60200660
 39B;Sieveringer Friedhof;1;60201256
+3A;Oper/Karlsplatz;0;60201182
+3A;Oper/Karlsplatz;1;60201129
+3A;Oper/Karlsplatz;2;60200213
+3A;Oper/Karlsplatz;3;60201144
+3A;Oper/Karlsplatz;4;60200544
+3A;Oper/Karlsplatz;5;60200157
+3A;Oper/Karlsplatz;6;60201320
+3A;Oper/Karlsplatz;7;60201102
+3A;Oper/Karlsplatz;8;60201193
+3A;Oper/Karlsplatz;9;60200975
 3A;Schottenring;0;60200245
 3A;Schottenring;1;60201102
 3A;Schottenring;2;60201320
@@ -5792,32 +5817,35 @@ line;headsign;seq;diva
 77A;Lusthaus;15;60201867
 77A;Lusthaus;16;60200818
 77A;Lusthaus;17;60200453
-77A;Rennweg;0;60200453
-77A;Rennweg;1;60200818
-77A;Rennweg;2;60201867
-77A;Rennweg;3;60201301
-77A;Rennweg;4;60201896
-77A;Rennweg;5;60201039
-77A;Rennweg;6;60200282
-77A;Rennweg;7;60201895
-77A;Rennweg;8;60201894
-77A;Rennweg;9;60201296
-77A;Rennweg;10;60201568
-77A;Rennweg;11;60200821
-77A;Rennweg;12;60201199
-77A;Rennweg;13;60200283
-77A;Rennweg;14;60200765
-77A;Rennweg;15;60200653
-77A;Rennweg;16;60201061
-77A;Rennweg;17;60201694
-77A;Rennweg;18;60200461
-77A;Rennweg;19;60200688
-77A;Rennweg;20;60201091
-77A;Schlachthausgasse;0;60201894
-77A;Schlachthausgasse;1;60201296
-77A;Schlachthausgasse;2;60201568
-77A;Schlachthausgasse;3;60200821
-77A;Schlachthausgasse;4;60201199
+77A;Neu Marx;0;60201091
+77A;Neu Marx;1;60200346
+77A;Neu Marx;2;60200292
+77A;Neu Marx;3;60201728
+77A;Neu Marx;4;60200075
+77A;Neu Marx;5;60200653
+77A;Neu Marx;6;60200765
+77A;Neu Marx;7;60200283
+77A;Neu Marx;8;60201199
+77A;Neu Marx;9;60201315
+77A;Neu Marx;10;60201321
+77A;Neu Marx;11;60201331
+77A;Neu Marx;12;60201339
+77A;Rennweg;0;60201339
+77A;Rennweg;1;60201331
+77A;Rennweg;2;60201321
+77A;Rennweg;3;60200115
+77A;Rennweg;4;60201199
+77A;Rennweg;5;60200283
+77A;Rennweg;6;60200765
+77A;Rennweg;7;60200653
+77A;Rennweg;8;60201061
+77A;Rennweg;9;60201694
+77A;Rennweg;10;60200461
+77A;Rennweg;11;60200688
+77A;Rennweg;12;60201091
+77A;Schlachthausgasse;0;60200282
+77A;Schlachthausgasse;1;60200821
+77A;Schlachthausgasse;2;60201199
 77A;Stadlauer Brücke;0;60201091
 77A;Stadlauer Brücke;1;60200346
 77A;Stadlauer Brücke;2;60200292
@@ -5828,14 +5856,10 @@ line;headsign;seq;diva
 77A;Stadlauer Brücke;7;60200283
 77A;Stadlauer Brücke;8;60201199
 77A;Stadlauer Brücke;9;60200821
-77A;Stadlauer Brücke;10;60201568
-77A;Stadlauer Brücke;11;60201296
-77A;Stadlauer Brücke;12;60201894
-77A;Stadlauer Brücke;13;60201895
-77A;Stadlauer Brücke;14;60200282
-77A;Stadlauer Brücke;15;60201039
-77A;Stadlauer Brücke;16;60201896
-77A;Stadlauer Brücke;17;60201874
+77A;Stadlauer Brücke;10;60200282
+77A;Stadlauer Brücke;11;60201039
+77A;Stadlauer Brücke;12;60201896
+77A;Stadlauer Brücke;13;60201874
 79A;Donaumarina, Chrastekgasse;0;60200907
 79A;Donaumarina, Chrastekgasse;1;60200639
 79A;Donaumarina, Chrastekgasse;2;60200087
@@ -6013,8 +6037,11 @@ line;headsign;seq;diva
 80A;Schlachthausgasse;3;60200609
 80A;Schlachthausgasse;4;60201497
 80A;Schlachthausgasse;5;60200359
-80A;Schlachthausgasse;6;60200821
-80A;Schlachthausgasse;7;60201199
+80A;Schlachthausgasse;6;60200817
+80A;Schlachthausgasse;7;60201549
+80A;Schlachthausgasse;8;60201568
+80A;Schlachthausgasse;9;60200821
+80A;Schlachthausgasse;10;60201199
 82A;Krieau;0;60201040
 82A;Krieau;1;60201747
 82A;Krieau;2;60201897
@@ -7397,25 +7424,24 @@ N35;Nußdorfer Straße;14;60200376
 N35;Nußdorfer Straße;15;60200474
 N35;Nußdorfer Straße;16;60200405
 N35;Nußdorfer Straße;17;60200950
-N35;Salmannsdorf;0;60201062
-N35;Salmannsdorf;1;60200950
-N35;Salmannsdorf;2;60201462
-N35;Salmannsdorf;3;60201509
-N35;Salmannsdorf;4;60200474
-N35;Salmannsdorf;5;60200376
-N35;Salmannsdorf;6;60200723
-N35;Salmannsdorf;7;60200336
-N35;Salmannsdorf;8;60201108
-N35;Salmannsdorf;9;60200714
-N35;Salmannsdorf;10;60200443
-N35;Salmannsdorf;11;60200404
-N35;Salmannsdorf;12;60200648
-N35;Salmannsdorf;13;60201336
-N35;Salmannsdorf;14;60200687
-N35;Salmannsdorf;15;60200010
-N35;Salmannsdorf;16;60200931
-N35;Salmannsdorf;17;60200206
-N35;Salmannsdorf;18;60201142
+N35;Salmannsdorf;0;60200950
+N35;Salmannsdorf;1;60201462
+N35;Salmannsdorf;2;60201509
+N35;Salmannsdorf;3;60200474
+N35;Salmannsdorf;4;60200376
+N35;Salmannsdorf;5;60200723
+N35;Salmannsdorf;6;60200336
+N35;Salmannsdorf;7;60201108
+N35;Salmannsdorf;8;60200714
+N35;Salmannsdorf;9;60200443
+N35;Salmannsdorf;10;60200404
+N35;Salmannsdorf;11;60200648
+N35;Salmannsdorf;12;60201336
+N35;Salmannsdorf;13;60200687
+N35;Salmannsdorf;14;60200010
+N35;Salmannsdorf;15;60200931
+N35;Salmannsdorf;16;60200206
+N35;Salmannsdorf;17;60201142
 N36;Nußdorf;0;60200950
 N36;Nußdorf;1;60200786
 N36;Nußdorf;2;60201062
