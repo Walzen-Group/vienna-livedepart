@@ -1,4 +1,4 @@
-#generated=2026-08-17
+#generated=2026-08-24
 line;headsign;seq;diva
 1;Bösendorferstraße/Karlsplatz;0;60200486
 1;Bösendorferstraße/Karlsplatz;1;60201497
@@ -1126,6 +1126,29 @@ line;headsign;seq;diva
 18;St. Marx;14;60200400
 18;St. Marx;15;60201486
 18;St. Marx;16;60201425
+18;Stadion;0;60200188
+18;Stadion;1;60201413
+18;Stadion;2;60201468
+18;Stadion;3;60200833
+18;Stadion;4;60200436
+18;Stadion;5;60200827
+18;Stadion;6;60200077
+18;Stadion;7;60200267
+18;Stadion;8;60200849
+18;Stadion;9;60200689
+18;Stadion;10;60200145
+18;Stadion;11;60201349
+18;Stadion;12;60201346
+18;Stadion;13;60200300
+18;Stadion;14;60200400
+18;Stadion;15;60201486
+18;Stadion;16;60201425
+18;Stadion;17;60201148
+18;Stadion;18;60200115
+18;Stadion;19;60201199
+18;Stadion;20;60200821
+18;Stadion;21;60201296
+18;Stadion;22;60201894
 18;Winckelmannstraße;0;60201199
 18;Winckelmannstraße;1;60200821
 18;Winckelmannstraße;2;60201199
@@ -1264,6 +1287,21 @@ line;headsign;seq;diva
 2;Josefstädter Straße;7;60200456
 2;Josefstädter Straße;8;60200173
 2;Josefstädter Straße;9;60200615
+2;Parlament/Volkstheater;0;60200450
+2;Parlament/Volkstheater;1;60200784
+2;Parlament/Volkstheater;2;60201121
+2;Parlament/Volkstheater;3;60201136
+2;Parlament/Volkstheater;4;60201490
+2;Parlament/Volkstheater;5;60200861
+2;Parlament/Volkstheater;6;60200602
+2;Parlament/Volkstheater;7;60200456
+2;Parlament/Volkstheater;8;60200173
+2;Parlament/Volkstheater;9;60200615
+2;Parlament/Volkstheater;10;60200019
+2;Parlament/Volkstheater;11;60201559
+2;Parlament/Volkstheater;12;60201072
+2;Parlament/Volkstheater;13;60201794
+2;Parlament/Volkstheater;14;60200246
 2;Praterstern;0;60200363
 2;Praterstern;1;60200569
 2;Praterstern;2;60200500
@@ -1275,21 +1313,6 @@ line;headsign;seq;diva
 2;Praterstern;8;60201130
 2;Praterstern;9;60200899
 2;Praterstern;10;60201040
-2;Ring/Volkstheater;0;60200450
-2;Ring/Volkstheater;1;60200784
-2;Ring/Volkstheater;2;60201121
-2;Ring/Volkstheater;3;60201136
-2;Ring/Volkstheater;4;60201490
-2;Ring/Volkstheater;5;60200861
-2;Ring/Volkstheater;6;60200602
-2;Ring/Volkstheater;7;60200456
-2;Ring/Volkstheater;8;60200173
-2;Ring/Volkstheater;9;60200615
-2;Ring/Volkstheater;10;60200019
-2;Ring/Volkstheater;11;60201559
-2;Ring/Volkstheater;12;60201072
-2;Ring/Volkstheater;13;60201794
-2;Ring/Volkstheater;14;60200246
 2;Schwedenplatz;0;60200363
 2;Schwedenplatz;1;60200569
 2;Schwedenplatz;2;60200500
@@ -3307,20 +3330,20 @@ line;headsign;seq;diva
 46;Josefstädter Straße;7;60200172
 46;Josefstädter Straße;8;60201372
 46;Josefstädter Straße;9;60200615
-46;Ring/Volkstheater;0;60200597
-46;Ring/Volkstheater;1;60201489
-46;Ring/Volkstheater;2;60200840
-46;Ring/Volkstheater;3;60200981
-46;Ring/Volkstheater;4;60201190
-46;Ring/Volkstheater;5;60201374
-46;Ring/Volkstheater;6;60200783
-46;Ring/Volkstheater;7;60200172
-46;Ring/Volkstheater;8;60201372
-46;Ring/Volkstheater;9;60201181
-46;Ring/Volkstheater;10;60201340
-46;Ring/Volkstheater;11;60200777
-46;Ring/Volkstheater;12;60201794
-46;Ring/Volkstheater;13;60200246
+46;Parlament/Volkstheater;0;60200597
+46;Parlament/Volkstheater;1;60201489
+46;Parlament/Volkstheater;2;60200840
+46;Parlament/Volkstheater;3;60200981
+46;Parlament/Volkstheater;4;60201190
+46;Parlament/Volkstheater;5;60201374
+46;Parlament/Volkstheater;6;60200783
+46;Parlament/Volkstheater;7;60200172
+46;Parlament/Volkstheater;8;60201372
+46;Parlament/Volkstheater;9;60201181
+46;Parlament/Volkstheater;10;60201340
+46;Parlament/Volkstheater;11;60200777
+46;Parlament/Volkstheater;12;60201794
+46;Parlament/Volkstheater;13;60200246
 46A;Ottakring;0;60201177
 46A;Ottakring;1;60201758
 46A;Ottakring;2;60200311
@@ -3455,28 +3478,28 @@ line;headsign;seq;diva
 48A;Klinik Penzing;19;60201082
 48A;Klinik Penzing;20;60201049
 48A;Klinik Penzing;21;60201052
-48A;Ring/Volkstheater;0;60201052
-48A;Ring/Volkstheater;1;60201049
-48A;Ring/Volkstheater;2;60201082
-48A;Ring/Volkstheater;3;60201188
-48A;Ring/Volkstheater;4;60201439
-48A;Ring/Volkstheater;5;60201691
-48A;Ring/Volkstheater;6;60200597
-48A;Ring/Volkstheater;7;60201489
-48A;Ring/Volkstheater;8;60200981
-48A;Ring/Volkstheater;9;60200445
-48A;Ring/Volkstheater;10;60201664
-48A;Ring/Volkstheater;11;60200179
-48A;Ring/Volkstheater;12;60200197
-48A;Ring/Volkstheater;13;60201428
-48A;Ring/Volkstheater;14;60200792
-48A;Ring/Volkstheater;15;60200188
-48A;Ring/Volkstheater;16;60200644
-48A;Ring/Volkstheater;17;60201531
-48A;Ring/Volkstheater;18;60200920
-48A;Ring/Volkstheater;19;60201152
-48A;Ring/Volkstheater;20;60201430
-48A;Ring/Volkstheater;21;60200246
+48A;Parlament/Volkstheater;0;60201052
+48A;Parlament/Volkstheater;1;60201049
+48A;Parlament/Volkstheater;2;60201082
+48A;Parlament/Volkstheater;3;60201188
+48A;Parlament/Volkstheater;4;60201439
+48A;Parlament/Volkstheater;5;60201691
+48A;Parlament/Volkstheater;6;60200597
+48A;Parlament/Volkstheater;7;60201489
+48A;Parlament/Volkstheater;8;60200981
+48A;Parlament/Volkstheater;9;60200445
+48A;Parlament/Volkstheater;10;60201664
+48A;Parlament/Volkstheater;11;60200179
+48A;Parlament/Volkstheater;12;60200197
+48A;Parlament/Volkstheater;13;60201428
+48A;Parlament/Volkstheater;14;60200792
+48A;Parlament/Volkstheater;15;60200188
+48A;Parlament/Volkstheater;16;60200644
+48A;Parlament/Volkstheater;17;60201531
+48A;Parlament/Volkstheater;18;60200920
+48A;Parlament/Volkstheater;19;60201152
+48A;Parlament/Volkstheater;20;60201430
+48A;Parlament/Volkstheater;21;60200246
 49;Breitensee;0;60200246
 49;Breitensee;1;60201430
 49;Breitensee;2;60201325
@@ -3544,30 +3567,30 @@ line;headsign;seq;diva
 49;Linzer Straße;11;60200302
 49;Linzer Straße;12;60201084
 49;Linzer Straße;13;60201158
-49;Ring/Volkstheater;0;60200184
-49;Ring/Volkstheater;1;60201734
-49;Ring/Volkstheater;2;60200107
-49;Ring/Volkstheater;3;60201613
-49;Ring/Volkstheater;4;60200358
-49;Ring/Volkstheater;5;60200534
-49;Ring/Volkstheater;6;60201438
-49;Ring/Volkstheater;7;60201014
-49;Ring/Volkstheater;8;60200472
-49;Ring/Volkstheater;9;60200780
-49;Ring/Volkstheater;10;60200166
-49;Ring/Volkstheater;11;60201035
-49;Ring/Volkstheater;12;60200606
-49;Ring/Volkstheater;13;60200556
-49;Ring/Volkstheater;14;60201200
-49;Ring/Volkstheater;15;60200458
-49;Ring/Volkstheater;16;60201413
-49;Ring/Volkstheater;17;60200646
-49;Ring/Volkstheater;18;60201533
-49;Ring/Volkstheater;19;60201088
-49;Ring/Volkstheater;20;60201237
-49;Ring/Volkstheater;21;60201325
-49;Ring/Volkstheater;22;60201430
-49;Ring/Volkstheater;23;60200246
+49;Parlament/Volkstheater;0;60200184
+49;Parlament/Volkstheater;1;60201734
+49;Parlament/Volkstheater;2;60200107
+49;Parlament/Volkstheater;3;60201613
+49;Parlament/Volkstheater;4;60200358
+49;Parlament/Volkstheater;5;60200534
+49;Parlament/Volkstheater;6;60201438
+49;Parlament/Volkstheater;7;60201014
+49;Parlament/Volkstheater;8;60200472
+49;Parlament/Volkstheater;9;60200780
+49;Parlament/Volkstheater;10;60200166
+49;Parlament/Volkstheater;11;60201035
+49;Parlament/Volkstheater;12;60200606
+49;Parlament/Volkstheater;13;60200556
+49;Parlament/Volkstheater;14;60201200
+49;Parlament/Volkstheater;15;60200458
+49;Parlament/Volkstheater;16;60201413
+49;Parlament/Volkstheater;17;60200646
+49;Parlament/Volkstheater;18;60201533
+49;Parlament/Volkstheater;19;60201088
+49;Parlament/Volkstheater;20;60201237
+49;Parlament/Volkstheater;21;60201325
+49;Parlament/Volkstheater;22;60201430
+49;Parlament/Volkstheater;23;60200246
 49A;Hütteldorf;0;60201261
 49A;Hütteldorf;1;60201826
 49A;Hütteldorf;2;60200216
@@ -5798,8 +5821,7 @@ line;headsign;seq;diva
 77A;Donaumarina;2;60200282
 77A;Ernst-Happel-Stadion;0;60201199
 77A;Ernst-Happel-Stadion;1;60200821
-77A;Ernst-Happel-Stadion;2;60201568
-77A;Ernst-Happel-Stadion;3;60201296
+77A;Ernst-Happel-Stadion;2;60201296
 77A;Lusthaus;0;60201091
 77A;Lusthaus;1;60200346
 77A;Lusthaus;2;60200292
@@ -6040,9 +6062,8 @@ line;headsign;seq;diva
 80A;Schlachthausgasse;5;60200359
 80A;Schlachthausgasse;6;60200817
 80A;Schlachthausgasse;7;60201549
-80A;Schlachthausgasse;8;60201568
-80A;Schlachthausgasse;9;60200821
-80A;Schlachthausgasse;10;60201199
+80A;Schlachthausgasse;8;60200821
+80A;Schlachthausgasse;9;60201199
 82A;Krieau;0;60201040
 82A;Krieau;1;60201747
 82A;Krieau;2;60201897
