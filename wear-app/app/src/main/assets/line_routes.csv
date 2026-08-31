@@ -1,4 +1,4 @@
-#generated=2026-08-24
+#generated=2026-08-31
 line;headsign;seq;diva
 1;Bösendorferstraße/Karlsplatz;0;60200486
 1;Bösendorferstraße/Karlsplatz;1;60201497
@@ -5883,6 +5883,25 @@ line;headsign;seq;diva
 77A;Stadlauer Brücke;11;60201039
 77A;Stadlauer Brücke;12;60201896
 77A;Stadlauer Brücke;13;60201874
+78A;Lusthaus;0;60201894
+78A;Lusthaus;1;60201895
+78A;Lusthaus;2;60200282
+78A;Lusthaus;3;60201039
+78A;Lusthaus;4;60201896
+78A;Lusthaus;5;60201874
+78A;Lusthaus;6;60201301
+78A;Lusthaus;7;60201867
+78A;Lusthaus;8;60200818
+78A;Lusthaus;9;60200453
+78A;Stadion;0;60200453
+78A;Stadion;1;60200818
+78A;Stadion;2;60201867
+78A;Stadion;3;60201301
+78A;Stadion;4;60201896
+78A;Stadion;5;60201039
+78A;Stadion;6;60200282
+78A;Stadion;7;60201895
+78A;Stadion;8;60201894
 79A;Donaumarina, Chrastekgasse;0;60200907
 79A;Donaumarina, Chrastekgasse;1;60200639
 79A;Donaumarina, Chrastekgasse;2;60200087
@@ -6060,10 +6079,8 @@ line;headsign;seq;diva
 80A;Schlachthausgasse;3;60200609
 80A;Schlachthausgasse;4;60201497
 80A;Schlachthausgasse;5;60200359
-80A;Schlachthausgasse;6;60200817
-80A;Schlachthausgasse;7;60201549
-80A;Schlachthausgasse;8;60200821
-80A;Schlachthausgasse;9;60201199
+80A;Schlachthausgasse;6;60200821
+80A;Schlachthausgasse;7;60201199
 82A;Krieau;0;60201040
 82A;Krieau;1;60201747
 82A;Krieau;2;60201897
@@ -6673,18 +6690,18 @@ line;headsign;seq;diva
 95A;Großer Biberhaufen;28;60201399
 95A;Großer Biberhaufen;29;60200636
 95A;Großer Biberhaufen;30;60200430
-95B;Amongasse;0;60200487
-95B;Amongasse;1;60200039
-95B;Amongasse;2;60200038
-95B;Amongasse;3;60201048
-95B;Amongasse;4;60201681
-95B;Amongasse;5;60200403
-95B;Amongasse;6;60200896
-95B;Amongasse;7;60200531
-95B;Amongasse;8;60200530
-95B;Amongasse;9;60200532
-95B;Amongasse;10;60200058
-95B;Hausfeldstraße;0;60200058
+95B;Contiweg;0;60200487
+95B;Contiweg;1;60200039
+95B;Contiweg;2;60200038
+95B;Contiweg;3;60201048
+95B;Contiweg;4;60201681
+95B;Contiweg;5;60200403
+95B;Contiweg;6;60200896
+95B;Contiweg;7;60200531
+95B;Contiweg;8;60200530
+95B;Contiweg;9;60200532
+95B;Contiweg;10;60201270
+95B;Hausfeldstraße;0;60201270
 95B;Hausfeldstraße;1;60200532
 95B;Hausfeldstraße;2;60200530
 95B;Hausfeldstraße;3;60200531
@@ -6910,6 +6927,17 @@ line;headsign;seq;diva
 9A;Meidling Hauptstraße;7;60200028
 9A;Meidling Hauptstraße;8;60201126
 9A;Meidling Hauptstraße;9;60200863
+9A;Meidling, Eichenstraße;0;60200863
+9A;Meidling, Eichenstraße;1;60201126
+9A;Meidling, Eichenstraße;2;60200028
+9A;Meidling, Eichenstraße;3;60201249
+9A;Meidling, Eichenstraße;4;60201212
+9A;Meidling, Eichenstraße;5;60201028
+9A;Meidling, Eichenstraße;6;60201546
+9A;Meidling, Eichenstraße;7;60201373
+9A;Meidling, Eichenstraße;8;60201545
+9A;Meidling, Eichenstraße;9;60200865
+9A;Meidling, Eichenstraße;10;60201262
 BB;Aßmayergasse;0;60200759
 BB;Aßmayergasse;1;60200918
 BB;Aßmayergasse;2;60200585
@@ -7331,6 +7359,35 @@ N24;Kagraner Platz;10;60201539
 N24;Kagraner Platz;11;60200839
 N24;Kagraner Platz;12;60200716
 N24;Kagraner Platz;13;60200633
+N25;Schwedenplatz;0;60201859
+N25;Schwedenplatz;1;60200748
+N25;Schwedenplatz;2;60200239
+N25;Schwedenplatz;3;60201151
+N25;Schwedenplatz;4;60200771
+N25;Schwedenplatz;5;60201216
+N25;Schwedenplatz;6;60201657
+N25;Schwedenplatz;7;60200155
+N25;Schwedenplatz;8;60201050
+N25;Schwedenplatz;9;60200785
+N25;Schwedenplatz;10;60200955
+N25;Schwedenplatz;11;60200572
+N25;Schwedenplatz;12;60201674
+N25;Schwedenplatz;13;60201673
+N25;Schwedenplatz;14;60201860
+N25;Schwedenplatz;15;60200632
+N25;Schwedenplatz;16;60200633
+N25;Schwedenplatz;17;60201313
+N25;Schwedenplatz;18;60200627
+N25;Schwedenplatz;19;60200238
+N25;Schwedenplatz;20;60200631
+N25;Schwedenplatz;21;60200031
+N25;Schwedenplatz;22;60200618
+N25;Schwedenplatz;23;60200641
+N25;Schwedenplatz;24;60200234
+N25;Schwedenplatz;25;60201433
+N25;Schwedenplatz;26;60201040
+N25;Schwedenplatz;27;60200916
+N25;Schwedenplatz;28;60201198
 N29;Floridsdorf;0;60201497
 N29;Floridsdorf;1;60201071
 N29;Floridsdorf;2;60200513
@@ -7601,19 +7658,18 @@ N43;Schottentor;13;60200742
 N43;Schottentor;14;60201184
 N46;Joachimsthalerplatz;0;60200975
 N46;Joachimsthalerplatz;1;60200246
-N46;Joachimsthalerplatz;2;60201430
-N46;Joachimsthalerplatz;3;60200664
-N46;Joachimsthalerplatz;4;60200921
-N46;Joachimsthalerplatz;5;60201532
-N46;Joachimsthalerplatz;6;60201372
-N46;Joachimsthalerplatz;7;60200172
-N46;Joachimsthalerplatz;8;60200783
-N46;Joachimsthalerplatz;9;60201374
-N46;Joachimsthalerplatz;10;60201190
-N46;Joachimsthalerplatz;11;60200981
-N46;Joachimsthalerplatz;12;60200840
-N46;Joachimsthalerplatz;13;60201489
-N46;Joachimsthalerplatz;14;60200597
+N46;Joachimsthalerplatz;2;60200777
+N46;Joachimsthalerplatz;3;60201340
+N46;Joachimsthalerplatz;4;60201181
+N46;Joachimsthalerplatz;5;60201372
+N46;Joachimsthalerplatz;6;60200172
+N46;Joachimsthalerplatz;7;60200783
+N46;Joachimsthalerplatz;8;60201374
+N46;Joachimsthalerplatz;9;60201190
+N46;Joachimsthalerplatz;10;60200981
+N46;Joachimsthalerplatz;11;60200840
+N46;Joachimsthalerplatz;12;60201489
+N46;Joachimsthalerplatz;13;60200597
 N46;Oper/Karlsplatz;0;60201049
 N46;Oper/Karlsplatz;1;60201065
 N46;Oper/Karlsplatz;2;60201439
@@ -7636,24 +7692,23 @@ N46;Oper/Karlsplatz;18;60200657
 N46;Oper/Karlsplatz;19;60200975
 N46;Otto-Wagner-Areal;0;60200975
 N46;Otto-Wagner-Areal;1;60200246
-N46;Otto-Wagner-Areal;2;60201430
-N46;Otto-Wagner-Areal;3;60200664
-N46;Otto-Wagner-Areal;4;60200921
-N46;Otto-Wagner-Areal;5;60201532
-N46;Otto-Wagner-Areal;6;60201372
-N46;Otto-Wagner-Areal;7;60200172
-N46;Otto-Wagner-Areal;8;60200783
-N46;Otto-Wagner-Areal;9;60201374
-N46;Otto-Wagner-Areal;10;60201190
-N46;Otto-Wagner-Areal;11;60200981
-N46;Otto-Wagner-Areal;12;60200840
-N46;Otto-Wagner-Areal;13;60201489
-N46;Otto-Wagner-Areal;14;60200597
-N46;Otto-Wagner-Areal;15;60201691
-N46;Otto-Wagner-Areal;16;60201439
-N46;Otto-Wagner-Areal;17;60201188
-N46;Otto-Wagner-Areal;18;60201082
-N46;Otto-Wagner-Areal;19;60201049
+N46;Otto-Wagner-Areal;2;60200777
+N46;Otto-Wagner-Areal;3;60201340
+N46;Otto-Wagner-Areal;4;60201181
+N46;Otto-Wagner-Areal;5;60201372
+N46;Otto-Wagner-Areal;6;60200172
+N46;Otto-Wagner-Areal;7;60200783
+N46;Otto-Wagner-Areal;8;60201374
+N46;Otto-Wagner-Areal;9;60201190
+N46;Otto-Wagner-Areal;10;60200981
+N46;Otto-Wagner-Areal;11;60200840
+N46;Otto-Wagner-Areal;12;60201489
+N46;Otto-Wagner-Areal;13;60200597
+N46;Otto-Wagner-Areal;14;60201691
+N46;Otto-Wagner-Areal;15;60201439
+N46;Otto-Wagner-Areal;16;60201188
+N46;Otto-Wagner-Areal;17;60201082
+N46;Otto-Wagner-Areal;18;60201049
 N49;Herzmanskystraße;0;60201035
 N49;Herzmanskystraße;1;60200166
 N49;Herzmanskystraße;2;60200780
@@ -7817,6 +7872,68 @@ N6;Westbahnhof;15;60200077
 N6;Westbahnhof;16;60200379
 N6;Westbahnhof;17;60200436
 N6;Westbahnhof;18;60201468
+N60;Hietzing;0;60201105
+N60;Hietzing;1;60200637
+N60;Hietzing;2;60201695
+N60;Hietzing;3;60200095
+N60;Hietzing;4;60201107
+N60;Hietzing;5;60201127
+N60;Hietzing;6;60200854
+N60;Hietzing;7;60200343
+N60;Hietzing;8;60201255
+N60;Hietzing;9;60201100
+N60;Hietzing;10;60200504
+N60;Hietzing;11;60200539
+N60;Hietzing;12;60201283
+N60;Hietzing;13;60200589
+N60;Hietzing;14;60201304
+N60;Hietzing;15;60200408
+N60;Hietzing;16;60200233
+N60;Hietzing;17;60200520
+N60;Oper/Karlsplatz;0;60200854
+N60;Oper/Karlsplatz;1;60200343
+N60;Oper/Karlsplatz;2;60201255
+N60;Oper/Karlsplatz;3;60201100
+N60;Oper/Karlsplatz;4;60200504
+N60;Oper/Karlsplatz;5;60200539
+N60;Oper/Karlsplatz;6;60201283
+N60;Oper/Karlsplatz;7;60200589
+N60;Oper/Karlsplatz;8;60201304
+N60;Oper/Karlsplatz;9;60200408
+N60;Oper/Karlsplatz;10;60200233
+N60;Oper/Karlsplatz;11;60200520
+N60;Oper/Karlsplatz;12;60201176
+N60;Oper/Karlsplatz;13;60201211
+N60;Oper/Karlsplatz;14;60201118
+N60;Oper/Karlsplatz;15;60200863
+N60;Oper/Karlsplatz;16;60200820
+N60;Oper/Karlsplatz;17;60200706
+N60;Oper/Karlsplatz;18;60200379
+N60;Oper/Karlsplatz;19;60200883
+N60;Oper/Karlsplatz;20;60200041
+N60;Oper/Karlsplatz;21;60201085
+N60;Oper/Karlsplatz;22;60201018
+N60;Oper/Karlsplatz;23;60200670
+N60;Oper/Karlsplatz;24;60200193
+N60;Oper/Karlsplatz;25;60200975
+N60;Rodaun;0;60200520
+N60;Rodaun;1;60200233
+N60;Rodaun;2;60200408
+N60;Rodaun;3;60201304
+N60;Rodaun;4;60200589
+N60;Rodaun;5;60201283
+N60;Rodaun;6;60200539
+N60;Rodaun;7;60200504
+N60;Rodaun;8;60201100
+N60;Rodaun;9;60201255
+N60;Rodaun;10;60200343
+N60;Rodaun;11;60200854
+N60;Rodaun;12;60200852
+N60;Rodaun;13;60201127
+N60;Rodaun;14;60201107
+N60;Rodaun;15;60201656
+N60;Rodaun;16;60201492
+N60;Rodaun;17;60201105
 N61;Liesing;0;60201706
 N61;Liesing;1;60200647
 N61;Liesing;2;60200478
@@ -7970,6 +8087,43 @@ N66;Liesing;25;60200214
 N66;Liesing;26;60200793
 N66;Liesing;27;60201125
 N66;Liesing;28;60200788
+N66;Oper/Karlsplatz;0;60200788
+N66;Oper/Karlsplatz;1;60200850
+N66;Oper/Karlsplatz;2;60200793
+N66;Oper/Karlsplatz;3;60200214
+N66;Oper/Karlsplatz;4;60201128
+N66;Oper/Karlsplatz;5;60200094
+N66;Oper/Karlsplatz;6;60200093
+N66;Oper/Karlsplatz;7;60200694
+N66;Oper/Karlsplatz;8;60200174
+N66;Oper/Karlsplatz;9;60200613
+N66;Oper/Karlsplatz;10;60201171
+N66;Oper/Karlsplatz;11;60200898
+N66;Oper/Karlsplatz;12;60201499
+N66;Oper/Karlsplatz;13;60201319
+N66;Oper/Karlsplatz;14;60201195
+N66;Oper/Karlsplatz;15;60201054
+N66;Oper/Karlsplatz;16;60201586
+N66;Oper/Karlsplatz;17;60201322
+N66;Oper/Karlsplatz;18;60201012
+N66;Oper/Karlsplatz;19;60200580
+N66;Oper/Karlsplatz;20;60200599
+N66;Oper/Karlsplatz;21;60200697
+N66;Oper/Karlsplatz;22;60201239
+N66;Oper/Karlsplatz;23;60200971
+N66;Oper/Karlsplatz;24;60201479
+N66;Oper/Karlsplatz;25;60201230
+N66;Oper/Karlsplatz;26;60201074
+N66;Oper/Karlsplatz;27;60200761
+N66;Oper/Karlsplatz;28;60200760
+N66;Oper/Karlsplatz;29;60200086
+N66;Oper/Karlsplatz;30;60201058
+N66;Oper/Karlsplatz;31;60200136
+N66;Oper/Karlsplatz;32;60201349
+N66;Oper/Karlsplatz;33;60200120
+N66;Oper/Karlsplatz;34;60201366
+N66;Oper/Karlsplatz;35;60201094
+N66;Oper/Karlsplatz;36;60200975
 N66;Reumannplatz;0;60200788
 N66;Reumannplatz;1;60200850
 N66;Reumannplatz;2;60200793
@@ -8205,26 +8359,11 @@ O;Quartier Belvedere;5;60200136
 O;Quartier Belvedere;6;60200211
 O;Quartier Belvedere;7;60201349
 O;Quartier Belvedere;8;60201346
-O;Quellenplatz;0;60201919
-O;Quellenplatz;1;60201918
-O;Quellenplatz;2;60200941
-O;Quellenplatz;3;60200899
-O;Quellenplatz;4;60201040
-O;Quellenplatz;5;60200348
-O;Quellenplatz;6;60201063
-O;Quellenplatz;7;60200527
-O;Quellenplatz;8;60200845
-O;Quellenplatz;9;60200743
-O;Quellenplatz;10;60201218
-O;Quellenplatz;11;60200929
-O;Quellenplatz;12;60201091
-O;Quellenplatz;13;60200736
-O;Quellenplatz;14;60200300
-O;Quellenplatz;15;60201346
-O;Quellenplatz;16;60201349
-O;Quellenplatz;17;60200211
-O;Quellenplatz;18;60200136
-O;Quellenplatz;19;60201058
+O;Quellenplatz;0;60201078
+O;Quellenplatz;1;60201393
+O;Quellenplatz;2;60200760
+O;Quellenplatz;3;60200086
+O;Quellenplatz;4;60201058
 O;Raxstraße;0;60201919
 O;Raxstraße;1;60201918
 O;Raxstraße;2;60200941
