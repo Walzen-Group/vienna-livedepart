@@ -1,4 +1,4 @@
-#generated=2026-08-31
+#generated=2026-09-07
 line;headsign;seq;diva
 1;Bösendorferstraße/Karlsplatz;0;60200486
 1;Bösendorferstraße/Karlsplatz;1;60201497
@@ -671,26 +671,27 @@ line;headsign;seq;diva
 12A;Schmelz, Gablenzgasse;2;60200306
 12A;Schmelz, Gablenzgasse;3;60201233
 12A;Schmelz, Gablenzgasse;4;60200104
-12A;Schmelz, Gablenzgasse;5;60201018
-12A;Schmelz, Gablenzgasse;6;60201085
-12A;Schmelz, Gablenzgasse;7;60200696
-12A;Schmelz, Gablenzgasse;8;60200041
-12A;Schmelz, Gablenzgasse;9;60200379
-12A;Schmelz, Gablenzgasse;10;60201868
-12A;Schmelz, Gablenzgasse;11;60200082
-12A;Schmelz, Gablenzgasse;12;60200820
-12A;Schmelz, Gablenzgasse;13;60201324
-12A;Schmelz, Gablenzgasse;14;60200501
-12A;Schmelz, Gablenzgasse;15;60200712
-12A;Schmelz, Gablenzgasse;16;60200437
-12A;Schmelz, Gablenzgasse;17;60201179
-12A;Schmelz, Gablenzgasse;18;60201200
-12A;Schmelz, Gablenzgasse;19;60200556
-12A;Schmelz, Gablenzgasse;20;60200606
-12A;Schmelz, Gablenzgasse;21;60201713
-12A;Schmelz, Gablenzgasse;22;60200877
-12A;Schmelz, Gablenzgasse;23;60201013
-12A;Schmelz, Gablenzgasse;24;60201664
+12A;Schmelz, Gablenzgasse;5;60200137
+12A;Schmelz, Gablenzgasse;6;60201018
+12A;Schmelz, Gablenzgasse;7;60201085
+12A;Schmelz, Gablenzgasse;8;60200696
+12A;Schmelz, Gablenzgasse;9;60200041
+12A;Schmelz, Gablenzgasse;10;60200379
+12A;Schmelz, Gablenzgasse;11;60201868
+12A;Schmelz, Gablenzgasse;12;60200082
+12A;Schmelz, Gablenzgasse;13;60200820
+12A;Schmelz, Gablenzgasse;14;60201324
+12A;Schmelz, Gablenzgasse;15;60200501
+12A;Schmelz, Gablenzgasse;16;60200712
+12A;Schmelz, Gablenzgasse;17;60200437
+12A;Schmelz, Gablenzgasse;18;60201179
+12A;Schmelz, Gablenzgasse;19;60201200
+12A;Schmelz, Gablenzgasse;20;60200556
+12A;Schmelz, Gablenzgasse;21;60200606
+12A;Schmelz, Gablenzgasse;22;60201713
+12A;Schmelz, Gablenzgasse;23;60200877
+12A;Schmelz, Gablenzgasse;24;60201013
+12A;Schmelz, Gablenzgasse;25;60201664
 13A;Burggasse/Neubaugasse;0;60201349
 13A;Burggasse/Neubaugasse;1;60200989
 13A;Burggasse/Neubaugasse;2;60200886
@@ -736,7 +737,8 @@ line;headsign;seq;diva
 13A;Margaretenplatz/Schönbrunner Straße;7;60200768
 13A;Margaretenplatz/Schönbrunner Straße;8;60201529
 13A;Margaretenplatz/Schönbrunner Straße;9;60200830
-13A;Margaretenplatz/Schönbrunner Straße;10;60200829
+13A;Margaretenplatz/Schönbrunner Straße;10;60200137
+13A;Margaretenplatz/Schönbrunner Straße;11;60200829
 13A;Neubaugasse;0;60201349
 13A;Neubaugasse;1;60200989
 13A;Neubaugasse;2;60200886
@@ -777,6 +779,15 @@ line;headsign;seq;diva
 13A;Volkstheater;4;60200920
 13A;Volkstheater;5;60201152
 13A;Volkstheater;6;60201430
+13A;Ziegelofengasse;0;60201349
+13A;Ziegelofengasse;1;60200989
+13A;Ziegelofengasse;2;60200886
+13A;Ziegelofengasse;3;60200079
+13A;Ziegelofengasse;4;60201019
+13A;Ziegelofengasse;5;60201066
+13A;Ziegelofengasse;6;60200604
+13A;Ziegelofengasse;7;60200768
+13A;Ziegelofengasse;8;60201529
 14A;Haus des Meeres;0;60201095
 14A;Haus des Meeres;1;60201300
 14A;Haus des Meeres;2;60200666
@@ -787,9 +798,10 @@ line;headsign;seq;diva
 14A;Haus des Meeres;7;60201286
 14A;Haus des Meeres;8;60201233
 14A;Haus des Meeres;9;60200104
-14A;Haus des Meeres;10;60201018
-14A;Haus des Meeres;11;60200293
-14A;Haus des Meeres;12;60200662
+14A;Haus des Meeres;10;60200137
+14A;Haus des Meeres;11;60201018
+14A;Haus des Meeres;12;60200293
+14A;Haus des Meeres;13;60200662
 14A;Neubaugasse;0;60201095
 14A;Neubaugasse;1;60201300
 14A;Neubaugasse;2;60200666
@@ -800,9 +812,10 @@ line;headsign;seq;diva
 14A;Neubaugasse;7;60201286
 14A;Neubaugasse;8;60201233
 14A;Neubaugasse;9;60200104
-14A;Neubaugasse;10;60201018
-14A;Neubaugasse;11;60200293
-14A;Neubaugasse;12;60200056
+14A;Neubaugasse;10;60200137
+14A;Neubaugasse;11;60201018
+14A;Neubaugasse;12;60200293
+14A;Neubaugasse;13;60200056
 14A;Reumannplatz;0;60200056
 14A;Reumannplatz;1;60200662
 14A;Reumannplatz;2;60200293
@@ -1049,6 +1062,28 @@ line;headsign;seq;diva
 18;Dörfelstraße;16;60200368
 18;Dörfelstraße;17;60200103
 18;Dörfelstraße;18;60200865
+18;Ernst-Happel-Stadion;0;60200188
+18;Ernst-Happel-Stadion;1;60201413
+18;Ernst-Happel-Stadion;2;60201468
+18;Ernst-Happel-Stadion;3;60200833
+18;Ernst-Happel-Stadion;4;60200436
+18;Ernst-Happel-Stadion;5;60200827
+18;Ernst-Happel-Stadion;6;60200077
+18;Ernst-Happel-Stadion;7;60200267
+18;Ernst-Happel-Stadion;8;60200849
+18;Ernst-Happel-Stadion;9;60200689
+18;Ernst-Happel-Stadion;10;60200145
+18;Ernst-Happel-Stadion;11;60201349
+18;Ernst-Happel-Stadion;12;60201346
+18;Ernst-Happel-Stadion;13;60200300
+18;Ernst-Happel-Stadion;14;60200400
+18;Ernst-Happel-Stadion;15;60201486
+18;Ernst-Happel-Stadion;16;60201425
+18;Ernst-Happel-Stadion;17;60201148
+18;Ernst-Happel-Stadion;18;60200115
+18;Ernst-Happel-Stadion;19;60201199
+18;Ernst-Happel-Stadion;20;60200821
+18;Ernst-Happel-Stadion;21;60201296
 18;Laxenburger Straße/Gudrunstraße;0;60201199
 18;Laxenburger Straße/Gudrunstraße;1;60200821
 18;Laxenburger Straße/Gudrunstraße;2;60201199
@@ -1126,29 +1161,30 @@ line;headsign;seq;diva
 18;St. Marx;14;60200400
 18;St. Marx;15;60201486
 18;St. Marx;16;60201425
-18;Stadion;0;60200188
-18;Stadion;1;60201413
-18;Stadion;2;60201468
-18;Stadion;3;60200833
-18;Stadion;4;60200436
-18;Stadion;5;60200827
-18;Stadion;6;60200077
-18;Stadion;7;60200267
-18;Stadion;8;60200849
-18;Stadion;9;60200689
-18;Stadion;10;60200145
-18;Stadion;11;60201349
-18;Stadion;12;60201346
-18;Stadion;13;60200300
-18;Stadion;14;60200400
-18;Stadion;15;60201486
-18;Stadion;16;60201425
-18;Stadion;17;60201148
-18;Stadion;18;60200115
-18;Stadion;19;60201199
-18;Stadion;20;60200821
-18;Stadion;21;60201296
-18;Stadion;22;60201894
+18;Stadion U/Handelskai;0;60200188
+18;Stadion U/Handelskai;1;60201413
+18;Stadion U/Handelskai;2;60201468
+18;Stadion U/Handelskai;3;60200833
+18;Stadion U/Handelskai;4;60200436
+18;Stadion U/Handelskai;5;60200827
+18;Stadion U/Handelskai;6;60200077
+18;Stadion U/Handelskai;7;60200267
+18;Stadion U/Handelskai;8;60200849
+18;Stadion U/Handelskai;9;60200689
+18;Stadion U/Handelskai;10;60200145
+18;Stadion U/Handelskai;11;60201349
+18;Stadion U/Handelskai;12;60201346
+18;Stadion U/Handelskai;13;60200300
+18;Stadion U/Handelskai;14;60200400
+18;Stadion U/Handelskai;15;60201486
+18;Stadion U/Handelskai;16;60201425
+18;Stadion U/Handelskai;17;60201148
+18;Stadion U/Handelskai;18;60200115
+18;Stadion U/Handelskai;19;60201199
+18;Stadion U/Handelskai;20;60200821
+18;Stadion U/Handelskai;21;60201296
+18;Stadion U/Handelskai;22;60201894
+18;Stadion U/Handelskai;23;60202502
 18;Winckelmannstraße;0;60201199
 18;Winckelmannstraße;1;60200821
 18;Winckelmannstraße;2;60201199
@@ -1444,6 +1480,36 @@ line;headsign;seq;diva
 24A;Neueßling;12;60200009
 24A;Neueßling;13;60201378
 24A;Neueßling;14;60200924
+25;Aspern Nord;0;60201631
+25;Aspern Nord;1;60201630
+25;Aspern Nord;2;60200778
+25;Aspern Nord;3;60201278
+25;Aspern Nord;4;60200473
+25;Aspern Nord;5;60200749
+25;Aspern Nord;6;60200701
+25;Aspern Nord;7;60200288
+25;Aspern Nord;8;60201031
+25;Aspern Nord;9;60200236
+25;Aspern Nord;10;60200081
+25;Aspern Nord;11;60200631
+25;Aspern Nord;12;60200238
+25;Aspern Nord;13;60200627
+25;Aspern Nord;14;60201735
+25;Aspern Nord;15;60200607
+25;Aspern Nord;16;60201141
+25;Aspern Nord;17;60200633
+25;Aspern Nord;18;60200716
+25;Aspern Nord;19;60200938
+25;Aspern Nord;20;60201786
+25;Aspern Nord;21;60201595
+25;Aspern Nord;22;60200966
+25;Aspern Nord;23;60200965
+25;Aspern Nord;24;60201048
+25;Aspern Nord;25;60201922
+25;Aspern Nord;26;60200596
+25;Aspern Nord;27;60201963
+25;Aspern Nord;28;60201964
+25;Aspern Nord;29;60200910
 25;Aspern, Oberdorfstraße;0;60200334
 25;Aspern, Oberdorfstraße;1;60200551
 25;Aspern, Oberdorfstraße;2;60200369
@@ -1756,8 +1822,15 @@ line;headsign;seq;diva
 27;Aspern Nord;24;60201963
 27;Aspern Nord;25;60201964
 27;Aspern Nord;26;60200910
-27;Floridsdorf;0;60201186
-27;Floridsdorf;1;60200334
+27;Floridsdorf;0;60200260
+27;Floridsdorf;1;60201135
+27;Floridsdorf;2;60200102
+27;Floridsdorf;3;60201495
+27;Floridsdorf;4;60200548
+27;Floridsdorf;5;60200699
+27;Floridsdorf;6;60200943
+27;Floridsdorf;7;60200050
+27;Floridsdorf;8;60200334
 27;Floridsdorfer Markt;0;60200334
 27;Floridsdorfer Markt;1;60201186
 27;Kagran;0;60200910
@@ -4279,6 +4352,17 @@ line;headsign;seq;diva
 58B;Hietzing;15;60201550
 58B;Hietzing;16;60200045
 58B;Hietzing;17;60200520
+59A;Margaretenplatz/Schönbrunner Straße;0;60201015
+59A;Margaretenplatz/Schönbrunner Straße;1;60200865
+59A;Margaretenplatz/Schönbrunner Straße;2;60200103
+59A;Margaretenplatz/Schönbrunner Straße;3;60200470
+59A;Margaretenplatz/Schönbrunner Straße;4;60201469
+59A;Margaretenplatz/Schönbrunner Straße;5;60200077
+59A;Margaretenplatz/Schönbrunner Straße;6;60200269
+59A;Margaretenplatz/Schönbrunner Straße;7;60201086
+59A;Margaretenplatz/Schönbrunner Straße;8;60200104
+59A;Margaretenplatz/Schönbrunner Straße;9;60200137
+59A;Margaretenplatz/Schönbrunner Straße;10;60200829
 59A;Meidling;0;60200975
 59A;Meidling;1;60200193
 59A;Meidling;2;60201168
@@ -4304,12 +4388,13 @@ line;headsign;seq;diva
 59A;Oper/Karlsplatz;6;60200269
 59A;Oper/Karlsplatz;7;60201086
 59A;Oper/Karlsplatz;8;60200104
-59A;Oper/Karlsplatz;9;60200829
-59A;Oper/Karlsplatz;10;60200517
-59A;Oper/Karlsplatz;11;60201047
-59A;Oper/Karlsplatz;12;60200193
-59A;Oper/Karlsplatz;13;60200657
-59A;Oper/Karlsplatz;14;60200975
+59A;Oper/Karlsplatz;9;60200137
+59A;Oper/Karlsplatz;10;60200829
+59A;Oper/Karlsplatz;11;60200517
+59A;Oper/Karlsplatz;12;60201047
+59A;Oper/Karlsplatz;13;60200193
+59A;Oper/Karlsplatz;14;60200657
+59A;Oper/Karlsplatz;15;60200975
 5A;Gaußplatz;0;60200424
 5A;Gaußplatz;1;60200011
 5A;Gaußplatz;2;60200781
@@ -4391,6 +4476,17 @@ line;headsign;seq;diva
 5B;Heiligenstadt;14;60200897
 5B;Heiligenstadt;15;60201351
 5B;Heiligenstadt;16;60200491
+5B;Jägerstraße;0;60200491
+5B;Jägerstraße;1;60201702
+5B;Jägerstraße;2;60200717
+5B;Jägerstraße;3;60201703
+5B;Jägerstraße;4;60200891
+5B;Jägerstraße;5;60201351
+5B;Jägerstraße;6;60200493
+5B;Jägerstraße;7;60200254
+5B;Jägerstraße;8;60200692
+5B;Jägerstraße;9;60201470
+5B;Jägerstraße;10;60201667
 5B;Praterstern;0;60200491
 5B;Praterstern;1;60201702
 5B;Praterstern;2;60200717
@@ -6079,8 +6175,10 @@ line;headsign;seq;diva
 80A;Schlachthausgasse;3;60200609
 80A;Schlachthausgasse;4;60201497
 80A;Schlachthausgasse;5;60200359
-80A;Schlachthausgasse;6;60200821
-80A;Schlachthausgasse;7;60201199
+80A;Schlachthausgasse;6;60200817
+80A;Schlachthausgasse;7;60201549
+80A;Schlachthausgasse;8;60200821
+80A;Schlachthausgasse;9;60201199
 82A;Krieau;0;60201040
 82A;Krieau;1;60201747
 82A;Krieau;2;60201897
